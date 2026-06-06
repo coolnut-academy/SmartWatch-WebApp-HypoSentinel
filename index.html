@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-[#080A16]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HypoSentinel Dashboard - Smartwatch-Based Early Warning System</title>
+    
+    <!-- Meta Descriptions for SEO -->
+    <meta name="description" content="HypoSentinel Web Dashboard - A premium smartwatch-based early warning system for hypoglycemia risk estimation. Production prototype with real-time analytics.">
+    <meta name="author" content="HypoSentinel Team">
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tailwind Custom Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        cyber: {
+                            bg: '#080A16',
+                            panel: 'rgba(15, 23, 42, 0.45)',
+                            panelBorder: 'rgba(255, 255, 255, 0.08)',
+                            glassText: '#e2e8f0',
+                            glowIndigo: '#6366f1',
+                            glowCyan: '#22d3ee',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                        'glass-inset': 'inset 0 0 12px rgba(255, 255, 255, 0.05)',
+                        'glow-cyan': '0 0 20px rgba(34, 211, 238, 0.3)',
+                        'glow-emerald': '0 0 20px rgba(16, 185, 129, 0.3)',
+                        'glow-amber': '0 0 20px rgba(245, 158, 11, 0.3)',
+                        'glow-orange': '0 0 20px rgba(249, 115, 22, 0.3)',
+                        'glow-rose': '0 0 20px rgba(244, 63, 94, 0.3)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'radar': 'radar 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'spin-slow': 'spin 10s linear infinite',
+                    },
+                    keyframes: {
+                        radar: {
+                            '0%': { transform: 'scale(0.95)', opacity: '0.8' },
+                            '100%': { transform: 'scale(1.3)', opacity: '0' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Liquid Glass styles */
+        .glass-panel {
+            background: rgba(15, 22, 45, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .liquid-glass-btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .liquid-glass-btn:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        /* Hide scrollbars but keep scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Ambient blur blobs styling */
+        .ambient-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans overflow-hidden text-slate-100 select-none relative">
+
+    <!-- Ambient Glowing Blobs -->
+    <div class="ambient-blob w-[500px] h-[500px] bg-indigo-600 top-[-100px] left-[-100px] animate-pulse-slow"></div>
+    <div class="ambient-blob w-[600px] h-[600px] bg-cyan-600 bottom-[-100px] right-[-100px]"></div>
+    <div class="ambient-blob w-[400px] h-[400px] bg-purple-600 top-1/3 right-1/4 animate-pulse-slow" style="animation-duration: 8s;"></div>
+    <div class="ambient-blob w-[300px] h-[300px] bg-rose-600 bottom-1/3 left-1/3"></div>
+
+    <!-- MAIN APP STRUCTURE -->
+    <div class="flex h-full w-full z-10 overflow-hidden">
+        
+        <!-- SIDEBAR - DESKTOP -->
+        <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-slate-950/80 border-r border-white/5 backdrop-blur-2xl transition-all duration-300 relative">
+            <!-- Brand Logotype -->
+            <div class="flex items-center gap-3 px-6 py-5 border-b border-white/5 bg-slate-950/40">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i data-lucide="shield-alert" class="w-5 h-5 text-white animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-md font-bold tracking-wider bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">HypoSentinel</h1>
+                    <p class="text-xs text-cyan-400 font-bold uppercase tracking-widest leading-none">Early Warning Sys</p>
+                </div>
+            </div>
+
+            <!-- Profile Summary (Glass card style) -->
+            <div class="p-4 border-b border-white/5 bg-slate-900/30">
+                <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                    <div class="relative">
+                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-indigo-400 flex items-center justify-center">
+                            <i data-lucide="user" class="w-5 h-5 text-indigo-300"></i>
+                        </div>
+                        <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-950"></span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-200">Demo Participant</p>
+                        <p class="text-xs text-slate-400 font-mono">ID: STUDENT_DEMO_001</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto no-scrollbar">
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-extrabold px-3 mb-2">การตรวจสอบหลัก</p>
+                <button onclick="switchTab('overview')" data-tab-btn="overview" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-glass-inset">
+                    <i data-lucide="activity" class="w-4.5 h-4.5"></i>
+                    <span>Overview / Live Monitor</span>
+                </button>
+                <button onclick="switchTab('trends')" data-tab-btn="trends" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent">
+                    <i data-lucide="trending-up" class="w-4.5 h-4.5"></i>
+                    <span>Physiological Trends</span>
+                </button>
+                
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-extrabold px-3 pt-4 mb-2">กลไกอัจฉริยะ (AI)</p>
+                <button onclick="switchTab('engine')" data-tab-btn="engine" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent">
+                    <i data-lucide="cpu" class="w-4.5 h-4.5"></i>
+                    <span>Risk Engine Model</span>
+                </button>
+                <button onclick="switchTab('markov')" data-tab-btn="markov" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent">
+                    <i data-lucide="git-commit" class="w-4.5 h-4.5"></i>
+                    <span>Markov State Flow</span>
+                </button>
+                <button onclick="switchTab('explainable')" data-tab-btn="explainable" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent">
+                    <i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i>
+                    <span>Explainable Alerts</span>
+                </button>
+
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-extrabold px-3 pt-4 mb-2">ประวัติและคุณภาพ</p>
+                <button onclick="switchTab('history')" data-tab-btn="history" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent">
+                    <i data-lucide="history" class="w-4.5 h-4.5"></i>
+                    <span>Alert History Log</span>
+                </button>
+                <button onclick="switchTab('device')" data-tab-btn="device" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent">
+                    <i data-lucide="tablet" class="w-4.5 h-4.5"></i>
+                    <span>Device & Signal Quality</span>
+                </button>
+                <button onclick="switchTab('settings')" data-tab-btn="settings" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent">
+                    <i data-lucide="settings" class="w-4.5 h-4.5"></i>
+                    <span>Settings & Baseline</span>
+                </button>
+            </nav>
+
+            <!-- Sidebar footer / disclaimer mini -->
+            <div class="p-4 border-t border-white/5 bg-slate-950/60">
+                <div class="text-xs text-slate-500 leading-normal text-center">
+                    <p class="font-bold text-amber-500/80 mb-1">Risk estimate only</p>
+                    <p>Not a glucose diagnostic tool.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT AREA CONTAINER -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+            
+            <!-- HEADER BAR -->
+            <header class="h-16 flex items-center justify-between px-4 md:px-6 bg-slate-950/45 border-b border-white/5 backdrop-blur-md z-30 shrink-0">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg bg-white/5 border border-white/10 text-slate-200">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm md:text-base font-mono text-cyan-400">Session ID:</span>
+                            <span class="text-sm md:text-base font-mono font-bold text-indigo-200" id="header-session-id">HS-2027-DEMO-001</span>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        </div>
+                        <p class="text-xs md:text-sm text-slate-400 hidden sm:block">Smartwatch-Based Early Warning System for Hypoglycemia Risk</p>
+                    </div>
+                </div>
+
+                <!-- Right badges and Statuses -->
+                <div class="flex items-center gap-2 md:gap-3">
+                    <!-- Safety alert notification tag -->
+                    <div class="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span class="text-xs font-semibold text-amber-300">Risk estimate only — not a glucose meter</span>
+                    </div>
+
+                    <!-- Sync Status -->
+                    <div id="device-sync-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" id="sync-badge-dot"></span>
+                        </span>
+                        <span class="text-sm font-semibold font-mono" id="sync-badge-text">Synced</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- MAIN PAGES DISPLAY -->
+            <div class="flex-1 overflow-y-auto no-scrollbar p-4 md:p-6 pb-32 space-y-6 z-20">
+
+                <!-- 1. OVERVIEW / LIVE MONITOR TAB -->
+                <div id="tab-overview" class="space-y-6 tab-content">
+                    
+                    <!-- Live Prototype Session Badge -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-glow-indigo">Live Prototype Session</span>
+                            <div class="flex items-center gap-1 text-xs text-slate-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                <span>Watch App Connected • Dashboard Synced • Risk Engine Running</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-500 font-mono">
+                            Pre-validation System Prototype • Presentation Mode
+                        </div>
+                    </div>
+
+                    <!-- Welcome banner / Disclaimer widget -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                        
+                        <div class="flex flex-col gap-6">
+                            <!-- Watch connection status card -->
+                            <div class="glass-panel rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[300px] flex-1">
+                                <!-- Rotating network radar circle in background -->
+                                <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full border border-indigo-500/10 animate-spin-slow pointer-events-none"></div>
+                                
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-xs uppercase tracking-widest text-slate-400 font-bold">Smartwatch Link</h3>
+                                        <span class="px-2 py-0.5 rounded text-xs font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Galaxy Watch 7</span>
+                                    </div>
+
+                                    <!-- Dynamic animated watch graphic -->
+                                    <div class="flex justify-center items-center my-6 relative">
+                                        <!-- Signal waves indicator -->
+                                        <div class="absolute w-28 h-28 rounded-full bg-indigo-500/5 animate-radar" id="watch-radar"></div>
+                                        
+                                        <!-- SVG Smartwatch -->
+                                        <svg class="w-24 h-24 drop-shadow-2xl" viewBox="0 0 100 100" id="svg-smartwatch">
+                                            <!-- Strap -->
+                                            <path d="M 38 12 L 62 12 L 58 26 L 42 26 Z" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                            <path d="M 38 88 L 62 88 L 58 74 L 42 74 Z" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                            <!-- Case -->
+                                            <circle cx="50" cy="50" r="28" fill="#0f172a" stroke="#475569" stroke-width="3"/>
+                                            <circle cx="50" cy="50" r="25" fill="#020617" id="watch-screen"/>
+                                            <!-- Dynamic sensor display -->
+                                            <circle cx="50" cy="50" r="20" fill="none" stroke="rgba(99, 102, 241, 0.2)" stroke-width="1" id="watch-screen-ring"/>
+                                            
+                                            <!-- Heart rate line graph drawn inside watch face -->
+                                            <path d="M 35 50 Q 40 50 43 45 T 46 55 T 49 35 T 52 65 T 55 48 T 58 50 T 65 50" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" id="watch-pulse-line" class="animate-pulse"/>
+                                            
+                                            <!-- Small dynamic icons inside watch -->
+                                            <circle cx="50" cy="35" r="2" fill="#10b981" id="watch-status-dot"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2 pt-4 border-t border-white/5">
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-slate-400">Device ID:</span>
+                                        <span class="text-slate-200 font-mono">WATCH-HS-007</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-slate-400">Signal Stream:</span>
+                                        <span class="text-slate-200" id="overview-signal-stream">Active Stream</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-slate-400">Processing Window:</span>
+                                        <span class="text-slate-200" id="overview-process-window">5–15 min</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-slate-400">Battery status:</span>
+                                        <span class="text-emerald-400 font-bold" id="overview-battery-pct">72%</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-slate-400">Wearing Status:</span>
+                                        <span class="text-slate-200" id="overview-wear-status">Wearing (สวมใส่)</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-slate-400 pt-1">
+                                        <span>Last Sync:</span>
+                                        <span class="font-mono text-cyan-400" id="overview-last-sync">23:45:12</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- System Pipeline Status Card -->
+                            <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xs uppercase tracking-widest text-slate-400 font-bold">System Pipeline Status</h3>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Pipeline Active</span>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1.5 text-center">
+                                    <div class="p-1.5 rounded bg-slate-900/40 border border-white/5 flex flex-col items-center justify-center">
+                                        <div class="flex items-center gap-1 mb-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                                            <span class="text-xs font-mono text-cyan-400 font-bold">Watch</span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">Running</span>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-slate-900/40 border border-white/5 flex flex-col items-center justify-center">
+                                        <div class="flex items-center gap-1 mb-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                                            <span class="text-xs font-mono text-cyan-400 font-bold">Window</span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">Running</span>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-slate-900/40 border border-white/5 flex flex-col items-center justify-center">
+                                        <div class="flex items-center gap-1 mb-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                                            <span class="text-xs font-mono text-cyan-400 font-bold">Engine</span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">Running</span>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-slate-900/40 border border-white/5 flex flex-col items-center justify-center">
+                                        <div class="flex items-center gap-1 mb-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                                            <span class="text-xs font-mono text-cyan-400 font-bold">Alert</span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">Running</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Risk estimate circular gauge card -->
+                        <div class="lg:col-span-2 flex flex-col">
+                            <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden min-h-[300px] flex-1">
+                                <!-- Glowing gradient background mask -->
+                                <div class="absolute right-0 bottom-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                                
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-xs uppercase tracking-widest text-slate-400 font-bold">ระบบเฝ้าระวังความเสี่ยงภาวะน้ำตาลต่ำ</h3>
+                                        <h2 class="text-lg font-bold text-white tracking-wide">Current Hypoglycemia Risk State</h2>
+                                    </div>
+                                    <div class="text-right">
+                                        <span id="risk-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/30 shadow-glow-orange">Warning / เตือน</span>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-5 gap-6 items-center my-4">
+                                    <!-- Big Gauge -->
+                                    <div class="md:col-span-2 flex flex-col items-center justify-center relative">
+                                        <!-- SVG circular gauge -->
+                                        <div class="relative w-36 h-36">
+                                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                                <!-- BG ring -->
+                                                <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="none"/>
+                                                <!-- Progress ring -->
+                                                <circle cx="50" cy="50" r="40" stroke="url(#risk-gradient)" stroke-width="8" fill="none" stroke-dasharray="251.2" stroke-dashoffset="82.8" stroke-linecap="round" id="risk-gauge-circle" class="transition-all duration-1000"/>
+                                                
+                                                <!-- Define Gradients -->
+                                                <defs>
+                                                    <linearGradient id="risk-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                        <stop offset="0%" stop-color="#22d3ee" />
+                                                        <stop offset="50%" stop-color="#f59e0b" />
+                                                        <stop offset="100%" stop-color="#ef4444" />
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                            <!-- Score text centered -->
+                                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                                <span class="text-3xl font-extrabold tracking-tight text-white font-mono" id="risk-score-text">0.67</span>
+                                                <span class="text-xs uppercase tracking-widest text-slate-400 font-bold">Risk Score</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-slate-400 font-mono mt-2" id="risk-confidence-label">Confidence: Medium-High</p>
+                                    </div>
+
+                                    <!-- Description and Verification action -->
+                                    <div class="md:col-span-3 space-y-4">
+                                        <div class="space-y-1">
+                                            <p class="text-sm text-indigo-200 font-medium">การประเมินแนวโน้มความเสี่ยง:</p>
+                                            <h4 class="text-xl font-extrabold text-orange-400" id="risk-trend-thai">แนวโน้มความเสี่ยงเพิ่มขึ้น</h4>
+                                            <p class="text-xs text-slate-300 leading-relaxed" id="risk-desc-long">
+                                                ระบบพบรูปแบบการเปลี่ยนแปลงของสัญญาณชีพร่วมกัน เช่น อัตราการเต้นหัวใจสูงกว่าค่าฐาน ความแปรปรวนของหัวใจลดลง และมีการเคลื่อนไหวน้อยในช่วงพัก จึงประเมินว่าแนวโน้มความเสี่ยงเพิ่มขึ้น และแนะนำให้ตรวจยืนยันด้วย CGM หรือเครื่องตรวจน้ำตาลมาตรฐาน
+                                            </p>
+                                        </div>
+                                        <div class="pt-2">
+                                            <button onclick="openVerifyModal()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg shadow-orange-500/20 active:scale-98 transition-all">
+                                                <i data-lucide="check-square" class="w-4 h-4"></i>
+                                                <span>ตรวจยืนยันด้วย CGM / Glucose Meter</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Indicator ranges bar -->
+                                <div class="grid grid-cols-4 gap-2 text-center text-xs font-bold text-slate-400 pt-4 border-t border-white/5">
+                                    <div class="py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" id="range-normal">ปกติ (0.00-0.29)</div>
+                                    <div class="py-1 rounded bg-slate-900/40 border border-white/5" id="range-watch">เฝ้าระวัง (0.30-0.59)</div>
+                                    <div class="py-1 rounded bg-slate-900/40 border border-white/5" id="range-warning">เตือนภัย (0.60-0.79)</div>
+                                    <div class="py-1 rounded bg-slate-900/40 border border-white/5" id="range-high">เสี่ยงสูง (0.80-1.00)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Live Signal Panels -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs uppercase tracking-widest text-indigo-400 font-bold">สัญญาณชีพเรียลไทม์จากนาฬิกา (Physiological Signal Stream)</h3>
+                            <span class="text-xs text-slate-400 flex items-center gap-1"><i data-lucide="info" class="w-3.5 h-3.5"></i> เปรียบเทียบกับ baseline ส่วนบุคคล</span>
+                        </div>
+                        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                            
+                            <!-- HR Card -->
+                            <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                                <div class="absolute -right-3 -top-3 text-red-500/5"><i data-lucide="heart" class="w-16 h-16"></i></div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-slate-400 uppercase">Heart Rate</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/30" id="hr-status-badge">Elevated</span>
+                                </div>
+                                <div class="my-3 flex items-baseline gap-1">
+                                    <span class="text-3xl font-extrabold text-white" id="hr-val-text">96</span>
+                                    <span class="text-xs text-slate-400">bpm</span>
+                                </div>
+                                <div class="text-xs flex items-center gap-1" id="hr-diff-text">
+                                    <i data-lucide="trending-up" class="w-3 h-3 text-red-400"></i>
+                                    <span class="text-red-400 font-bold">+18</span> from baseline
+                                </div>
+                            </div>
+
+                            <!-- HRV Card -->
+                            <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                                <div class="absolute -right-3 -top-3 text-cyan-500/5"><i data-lucide="activity" class="w-16 h-16"></i></div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-slate-400 uppercase">HRV RMSSD</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" id="hrv-status-badge">Reduced</span>
+                                </div>
+                                <div class="my-3 flex items-baseline gap-1">
+                                    <span class="text-3xl font-extrabold text-white" id="hrv-val-text">32</span>
+                                    <span class="text-xs text-slate-400">ms</span>
+                                </div>
+                                <div class="text-xs flex items-center gap-1" id="hrv-diff-text">
+                                    <i data-lucide="trending-down" class="w-3 h-3 text-cyan-400"></i>
+                                    <span class="text-cyan-400 font-bold">-21</span> from baseline
+                                </div>
+                            </div>
+
+                            <!-- Temp Card -->
+                            <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                                <div class="absolute -right-3 -top-3 text-blue-500/5"><i data-lucide="thermometer" class="w-16 h-16"></i></div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-slate-400 uppercase">Skin Temp</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30" id="temp-status-badge">Slightly Low</span>
+                                </div>
+                                <div class="my-3 flex items-baseline gap-1">
+                                    <span class="text-3xl font-extrabold text-white" id="temp-val-text">32.8</span>
+                                    <span class="text-xs text-slate-400">°C</span>
+                                </div>
+                                <div class="text-xs flex items-center gap-1" id="temp-diff-text">
+                                    <i data-lucide="trending-down" class="w-3 h-3 text-blue-400"></i>
+                                    <span class="text-blue-400 font-bold">-0.4</span> from baseline
+                                </div>
+                            </div>
+
+                            <!-- Movement Card -->
+                            <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                                <div class="absolute -right-3 -top-3 text-amber-500/5"><i data-lucide="move" class="w-16 h-16"></i></div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-slate-400 uppercase">Movement</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30" id="movement-status-badge">Resting</span>
+                                </div>
+                                <div class="my-3 flex items-baseline gap-1">
+                                    <span class="text-3xl font-extrabold text-white" id="movement-val-text">0.04</span>
+                                    <span class="text-xs text-slate-400">g</span>
+                                </div>
+                                <div class="text-xs flex items-center gap-1" id="movement-diff-text">
+                                    <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
+                                    <span class="text-emerald-400 font-bold">Low Activity</span>
+                                </div>
+                            </div>
+
+                            <!-- Sleep Context Card -->
+                            <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden col-span-2 lg:col-span-1">
+                                <div class="absolute -right-3 -top-3 text-indigo-500/5"><i data-lucide="moon" class="w-16 h-16"></i></div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-slate-400 uppercase">Context State</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" id="sleep-status-badge">Night</span>
+                                </div>
+                                <div class="my-3 flex items-baseline gap-1">
+                                    <span class="text-lg font-bold text-white leading-tight" id="sleep-val-text">Night / Low-motion rest</span>
+                                </div>
+                                <div class="text-xs flex items-center gap-1 text-slate-400">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                    <span>Timeframe Calibration</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Mini trend & Alert snapshot -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Mini Trend Chart container -->
+                        <div class="glass-panel rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xs uppercase tracking-widest text-slate-400 font-bold">แนวโน้มย้อนหลัง 30 นาที (30-Minute Risk Score Trend)</h3>
+                                <button onclick="switchTab('trends')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1">ดูแบบละเอียด <i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                            </div>
+                            <div class="h-48 w-full relative">
+                                <canvas id="miniTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Explainable alert reasons -->
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-4">ทำไมระบบถึงแจ้งเตือน? (Why this alert?)</h3>
+                                <ul class="space-y-3" id="overview-reasons-list">
+                                    <li class="flex items-center justify-between text-xs p-2 rounded bg-white/5 border border-white/5">
+                                        <span class="text-slate-300">1. HR above personal baseline</span>
+                                        <span class="text-orange-400 font-mono font-bold">+0.24</span>
+                                    </li>
+                                    <li class="flex items-center justify-between text-xs p-2 rounded bg-white/5 border border-white/5">
+                                        <span class="text-slate-300">2. HRV decreased from baseline</span>
+                                        <span class="text-orange-400 font-mono font-bold">+0.21</span>
+                                    </li>
+                                    <li class="flex items-center justify-between text-xs p-2 rounded bg-white/5 border border-white/5">
+                                        <span class="text-slate-300">3. Low movement during night</span>
+                                        <span class="text-orange-400 font-mono font-bold">+0.14</span>
+                                    </li>
+                                    <li class="flex items-center justify-between text-xs p-2 rounded bg-white/5 border border-white/5">
+                                        <span class="text-slate-300">4. Risk trend rising</span>
+                                        <span class="text-orange-400 font-mono font-bold">+0.08</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="pt-4 border-t border-white/5">
+                                <button onclick="switchTab('explainable')" class="w-full text-center text-xs text-cyan-400 hover:text-cyan-300 font-semibold py-1">วิเคราะห์เชิงลึก AI Shapley > </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Safety Notice Widget -->
+                    <div class="glass-panel rounded-2xl p-5 bg-amber-500/5 border border-amber-500/15 flex flex-col sm:flex-row items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0 mt-0.5 shadow-glow-amber">
+                            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                        </div>
+                        <div class="space-y-2 text-left">
+                            <p class="text-xs font-bold text-amber-400 tracking-wide uppercase">ข้อจำกัดความปลอดภัยของระบบ (Safety & Medical Disclaimer)</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400 leading-relaxed">
+                                <p>
+                                    <span class="font-bold text-slate-300">ภาษาไทย:</span> HypoSentinel เป็นระบบช่วยเฝ้าระวังความเสี่ยง ไม่ใช่เครื่องวัดน้ำตาลหรือเครื่องมือวินิจฉัยทางการแพทย์ ไม่ระบุระดับน้ำตาลในเลือด และไม่มีการแนะนำโดสอินซูลินใดๆ กรุณาตรวจยืนยันด้วย CGM หรือเครื่องตรวจน้ำตาลมาตรฐานก่อนตัดสินใจทางการแพทย์
+                                </p>
+                                <p>
+                                    <span class="font-bold text-slate-300">English:</span> Risk estimate only. Not a glucose meter. Not for diagnosis or treatment decisions. Please verify all alerts with CGM or a standard blood glucose meter before making any medical decisions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. PHYSIOLOGICAL TRENDS TAB -->
+                <div id="tab-trends" class="space-y-6 tab-content hidden">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">การเปรียบเทียบและวิเคราะห์แนวโน้มสัญญาณชีพ</h2>
+                            <p class="text-xs text-slate-400">Physiological Time-Series Analysis & Baseline Calibration</p>
+                        </div>
+                        <!-- Range filters -->
+                        <div class="flex gap-1.5 p-1 bg-slate-900/60 rounded-xl border border-white/5">
+                            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-white/10 border border-white/5" id="range-btn-30m">Last 30 min</button>
+                            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-300" onclick="alert('ฟีเจอร์ประวัติย้อนหลังเป็นส่วนเสริมพิเศษในเวอร์ชันจริง')">Last 1 hr</button>
+                            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-300" onclick="alert('ฟีเจอร์ประวัติย้อนหลังเป็นส่วนเสริมพิเศษในเวอร์ชันจริง')">Last Night</button>
+                        </div>
+                    </div>
+
+                    <!-- Big Trend Line Chart -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-200">กราฟอนุกรมเวลาเปรียบเทียบสัญญาณชีพร่วม (Normalized Risk Analysis)</h3>
+                                <p class="text-xs text-slate-500">เส้นกราฟเปรียบเทียบการเปลี่ยนแปลงของ Heart Rate, HRV, Skin Temp, Movement และคะแนนความเสี่ยงโดยภาพรวม</p>
+                            </div>
+                        </div>
+                        <div class="h-80 w-full relative">
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Baseline Table -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Table -->
+                        <div class="glass-panel rounded-2xl p-6 lg:col-span-2">
+                            <h3 class="text-sm font-bold text-slate-200 mb-4">ตารางวิเคราะห์ความต่างค่าปัจจุบันและค่าฐานเฉลี่ย (Baseline Comparison Table)</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-white/5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                                            <th class="pb-3">สัญญาณชีพ (Signal)</th>
+                                            <th class="pb-3 text-center">ค่าปัจจุบัน (Current)</th>
+                                            <th class="pb-3 text-center">ค่าอ้างอิงเฉลี่ย (Baseline)</th>
+                                            <th class="pb-3 text-center">ค่าเบี่ยงเบน (Change)</th>
+                                            <th class="pb-3">การตีความผล (Interpretation)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-xs divide-y divide-white/5" id="trends-table-body">
+                                        <!-- Will be dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Panel explain trends -->
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <h3 class="text-sm font-bold text-slate-200">บทวิเคราะห์แนวโน้มปัจจุบัน (Trend Analysis)</h3>
+                                <div class="p-4 rounded-xl bg-slate-900/60 border border-white/5">
+                                    <p class="text-xs text-slate-300 leading-relaxed" id="trend-interpretation-text">
+                                        ระบบตรวจพบพฤติกรรมการเพิ่มขึ้นของอัตราการเต้นหัวใจสวนทางกับการลดลงอย่างรวดเร็วของความแปรปรวน (HRV Proxy) ขณะที่ผู้ใช้งานไม่มีประวัติการเคลื่อนไหวร่างกาย แสดงถึงการตอบสนองแบบกระตุ้นประสาทซิมพาเทติกเฉียบพลันในขณะพัก ซึ่งเป็นลักษณะจำเพาะสูงสุดของภาวะเสี่ยงน้ำตาลต่ำ
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-white/5 text-xs text-slate-400">
+                                * ข้อมูลคำนวณจากโมเดลเปรียบเทียบกับค่าเฉลี่ยเวลานอนหลับ (Resting Baseline) ในช่วง 7 วันที่ผ่านมา
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. RISK ENGINE TAB -->
+                <div id="tab-engine" class="space-y-6 tab-content hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">กลไกประมวลผลความเสี่ยง (Risk Engine Workflow)</h2>
+                            <p class="text-xs text-slate-400">การแปรรูปสัญญาณชีพและการจำแนกความเสี่ยงแบบเรียลไทม์</p>
+                        </div>
+                    </div>
+
+                    <!-- Diagram Flow -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-slate-200 mb-6">สถาปัตยกรรมตัวแปลงข้อมูล (Smartwatch Data Pipeline)</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
+                            
+                            <div class="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                                <i data-lucide="tablet" class="w-6 h-6 text-indigo-400 mx-auto mb-2"></i>
+                                <h4 class="text-xs font-bold">Smartwatch Sensors</h4>
+                                <p class="text-xs text-slate-400 mt-1">PPG, Accelerometer, Thermistor</p>
+                            </div>
+
+                            <div class="text-center text-slate-500 hidden md:block"><i data-lucide="arrow-right" class="w-5 h-5 mx-auto"></i></div>
+
+                            <div class="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                                <i data-lucide="sliders" class="w-6 h-6 text-cyan-400 mx-auto mb-2"></i>
+                                <h4 class="text-xs font-bold">Feature Extraction</h4>
+                                <p class="text-xs text-slate-400 mt-1">15-Minute Rolling Window Calculation</p>
+                            </div>
+
+                            <div class="text-center text-slate-500 hidden md:block"><i data-lucide="arrow-right" class="w-5 h-5 mx-auto"></i></div>
+
+                            <div class="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                                <i data-lucide="user-check" class="w-6 h-6 text-emerald-400 mx-auto mb-2"></i>
+                                <h4 class="text-xs font-bold">Personal Baseline</h4>
+                                <p class="text-xs text-slate-400 mt-1">Comparing Current vs User averages</p>
+                            </div>
+
+                            <div class="text-center text-slate-500 hidden md:block"><i data-lucide="arrow-right" class="w-5 h-5 mx-auto"></i></div>
+
+                            <div class="p-4 rounded-xl bg-gradient-to-r from-indigo-900/40 to-cyan-900/40 border border-indigo-500/20 text-center">
+                                <i data-lucide="git-merge" class="w-6 h-6 text-indigo-300 mx-auto mb-2 animate-pulse"></i>
+                                <h4 class="text-xs font-bold">Random Forest Model</h4>
+                                <p class="text-xs text-indigo-200 mt-1">Evaluating Multi-dimensional Signatures</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Left Panel: Feature list -->
+                        <div class="glass-panel rounded-2xl p-6">
+                            <h3 class="text-sm font-bold text-slate-200 mb-4">ข้อมูลคุณลักษณะการวิเคราะห์ (Window Feature Extractions)</h3>
+                            <div class="space-y-3 text-xs">
+                                <div class="flex justify-between items-center p-2.5 rounded bg-slate-900/60 border border-white/5">
+                                    <span class="text-slate-300">ขนาดหน้าต่างข้อมูลการคำนวณ (Window Size):</span>
+                                    <span class="font-mono font-bold text-indigo-400">15 Minutes</span>
+                                </div>
+                                <p class="text-xs text-slate-400 py-1">รายการฟีเจอร์สำคัญที่โมเดล AI นำไปประเมินทุกๆ 5 นาที:</p>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> HR mean / HR max</div>
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> HR Slope (ความเร่งชีพจร)</div>
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> HR Deviation from baseline</div>
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> HRV RMSSD proxy estimation</div>
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> Skin temp delta / slope</div>
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> Movement variance / Stillness</div>
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> Nighttime Context flag</div>
+                                    <div class="p-2 bg-white/5 rounded"><i data-lucide="check" class="w-3 h-3 text-emerald-400 inline mr-1"></i> Missing data ratio</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Math equation concept -->
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <h3 class="text-sm font-bold text-slate-200">สูตรประเมินเชิงคณิตศาสตร์แบบแนวคิด (Risk Formula Concept)</h3>
+                                <div class="p-5 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 font-mono text-xs text-indigo-300 text-center">
+                                    Risk Score = f( ΔHR, ΔHRV, ΔTemp, Actigraphy, Context, Q_data )
+                                </div>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    โมเดลประมวลผลผ่านสมการการถดถอยแบบป่าสุ่ม (Random Forest Decision Tree Regression) เพื่อหาความน่าจะเป็นความล้มเหลวในการปรับสมดุลน้ำตาล โดยประมวลผลร่วมกับตัวกรองสภาวะมาร์คอฟเพื่อรักษาความสม่ำเสมอของผลแจ้งเตือนและลดอัตราการแจ้งเตือนผิดพลาด (False Alarm Suppression)
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-white/5 text-xs text-slate-500 flex flex-wrap justify-between gap-2">
+                                <span>สถานะโมเดล: ต้นแบบสำหรับสาธิตและเตรียมทดสอบ (Prototype / Pre-validation)</span>
+                                <span>Engine Signature: <span class="font-mono">HS-RF-v0.1</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. MARKOV TRANSITION TAB -->
+                <div id="tab-markov" class="space-y-6 tab-content hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">โมเดลการเปลี่ยนผ่านสถานะมาร์คอฟ (Markov Risk State Transition)</h2>
+                            <p class="text-xs text-slate-400">การพยากรณ์ความน่าจะเป็นที่จะก้าวเข้าสู่ภาวะความเสี่ยงถัดไป</p>
+                        </div>
+                    </div>
+
+                    <!-- Flow of Markov nodes -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-slate-200 mb-6">แผนภูมิความน่าจะเป็นของสถานะความเสี่ยง (Risk State Transition Diagram)</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative" id="markov-nodes-container">
+                            <!-- Normal Node -->
+                            <div class="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center relative" id="markov-node-normal">
+                                <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <h4 class="text-xs uppercase font-bold text-emerald-400">Normal (ปกติ)</h4>
+                                <p class="text-2xl font-extrabold text-white mt-2 font-mono" id="markov-p-normal">0.18</p>
+                                <p class="text-xs text-slate-400 mt-1">Probability</p>
+                            </div>
+                            <!-- Watch Node -->
+                            <div class="p-5 rounded-2xl bg-slate-900/60 border border-white/5 text-center relative" id="markov-node-watch">
+                                <h4 class="text-xs uppercase font-bold text-amber-400">Watch (เฝ้าระวัง)</h4>
+                                <p class="text-2xl font-extrabold text-white mt-2 font-mono" id="markov-p-watch">0.26</p>
+                                <p class="text-xs text-slate-400 mt-1">Probability</p>
+                            </div>
+                            <!-- Warning Node -->
+                            <div class="p-5 rounded-2xl bg-slate-900/60 border border-white/5 text-center relative" id="markov-node-warning">
+                                <h4 class="text-xs uppercase font-bold text-orange-400">Warning (เตือนภัย)</h4>
+                                <p class="text-2xl font-extrabold text-white mt-2 font-mono" id="markov-p-warning">0.38</p>
+                                <p class="text-xs text-slate-400 mt-1">Probability</p>
+                            </div>
+                            <!-- High Risk Node -->
+                            <div class="p-5 rounded-2xl bg-slate-900/60 border border-white/5 text-center relative" id="markov-node-highRisk">
+                                <h4 class="text-xs uppercase font-bold text-rose-500">High Risk (เสี่ยงสูง)</h4>
+                                <p class="text-2xl font-extrabold text-white mt-2 font-mono" id="markov-p-highRisk">0.18</p>
+                                <p class="text-xs text-slate-400 mt-1">Probability</p>
+                            </div>
+                        </div>
+
+                        <!-- Most likely next state summary card -->
+                        <div class="mt-6 p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/10 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300">แนวโน้มการขยับสถานะที่น่าจะเป็นที่สุดใน 15 นาทีถัดไป (Most Likely Next State):</span>
+                            <span class="text-sm font-bold text-cyan-400 bg-cyan-950/40 px-3 py-1.5 rounded-lg border border-cyan-800/30" id="markov-next-state-text">Warning State (เตือนภัย)</span>
+                        </div>
+                    </div>
+
+                    <!-- Transition Probability Matrix -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Matrix Table -->
+                        <div class="glass-panel rounded-2xl p-6 lg:col-span-2">
+                            <h3 class="text-sm font-bold text-slate-200 mb-4">ตารางความน่าจะเป็นแบบมีเงื่อนไข (Transition Probability Matrix)</h3>
+                            <div class="overflow-x-auto text-xs text-center">
+                                <table class="w-full border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-white/5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                            <th class="pb-3 text-left">สถานะปัจจุบัน \ ถัดไป</th>
+                                            <th class="pb-3">ปกติ (Normal)</th>
+                                            <th class="pb-3">เฝ้าระวัง (Watch)</th>
+                                            <th class="pb-3">เตือนภัย (Warning)</th>
+                                            <th class="pb-3">เสี่ยงสูง (High Risk)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5 font-mono">
+                                        <tr class="hover:bg-white/5" id="matrix-row-normal">
+                                            <td class="py-3 text-left font-sans font-bold text-emerald-400">Normal</td>
+                                            <td class="py-3 text-white">0.62</td>
+                                            <td class="py-3">0.24</td>
+                                            <td class="py-3">0.10</td>
+                                            <td class="py-3">0.04</td>
+                                        </tr>
+                                        <tr class="hover:bg-white/5" id="matrix-row-watch">
+                                            <td class="py-3 text-left font-sans font-bold text-amber-400">Watch</td>
+                                            <td class="py-3">0.28</td>
+                                            <td class="py-3 text-white">0.40</td>
+                                            <td class="py-3">0.24</td>
+                                            <td class="py-3">0.08</td>
+                                        </tr>
+                                        <tr class="hover:bg-white/5 bg-indigo-500/5" id="matrix-row-warning">
+                                            <td class="py-3 text-left font-sans font-bold text-orange-400">Warning</td>
+                                            <td class="py-3">0.18</td>
+                                            <td class="py-3">0.26</td>
+                                            <td class="py-3 text-white">0.38</td>
+                                            <td class="py-3">0.18</td>
+                                        </tr>
+                                        <tr class="hover:bg-white/5" id="matrix-row-highRisk">
+                                            <td class="py-3 text-left font-sans font-bold text-rose-500">High Risk</td>
+                                            <td class="py-3">0.06</td>
+                                            <td class="py-3">0.14</td>
+                                            <td class="py-3">0.30</td>
+                                            <td class="py-3 text-white">0.50</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Theory Box -->
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <h3 class="text-sm font-bold text-slate-200">นวัตกรรมการวิเคราะห์แบบมาร์คอฟ</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    แทนที่จะพิจารณาจุดสัญญาณชีพเดี่ยวๆ ที่อาจแกว่งตัวจากปัจจัยแวดล้อมชั่วขณะ ระบบประยุกต์ใช้ความหนาแน่นมาร์คอฟ (Markov Transition Density) เพื่อประเมินพลศาสตร์และการเดินทางของสัญญาณชีพในพฤติกรรมระยะยาว ซึ่งช่วยให้ระบบสามารถคาดการณ์ความเสี่ยงล่วงหน้าได้สูงสุด 15-30 นาทีก่อนจะเกิดอาการทางกายภาพจริง
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-white/5 text-xs text-slate-500">
+                                การประเมินมาร์คอฟไม่ใช่ตัวชี้วัดความเจ็บป่วยทางตรง เป็นเพียงการคำนวณการย้ายกลุ่มพฤติกรรม
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. EXPLAINABLE ALERTS TAB -->
+                <div id="tab-explainable" class="space-y-6 tab-content hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">เหตุผลและสถิติการแจ้งเตือน (Explainable AI Panel)</h2>
+                            <p class="text-xs text-slate-400">แสดงการมีส่วนร่วมของปัจจัยตรวจจับต่อคะแนนความเสี่ยง (Shapley Value / Feature Contribution)</p>
+                        </div>
+                    </div>
+
+                    <!-- Bars chart feature contributions -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-slate-200 mb-6">คะแนนสัดส่วนการผลักดันความเสี่ยง (Feature Risk Contribution Index)</h3>
+                        
+                        <div class="space-y-4" id="explainable-contributions-container">
+                            <!-- Render dynamic bars in JS -->
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Human-friendly Thai Explanations -->
+                        <div class="glass-panel rounded-2xl p-6 space-y-4">
+                            <div class="flex items-center gap-2 text-cyan-400">
+                                <i data-lucide="message-square" class="w-5 h-5"></i>
+                                <h3 class="text-sm font-bold uppercase tracking-wider">คำอธิบายสำหรับผู้ใช้ (Human-Friendly Interpretation)</h3>
+                            </div>
+                            
+                            <div class="space-y-3 text-xs leading-relaxed">
+                                <div class="p-4 rounded-xl bg-slate-900/60 border border-white/5">
+                                    <p class="font-bold text-slate-300">ภาษาไทย:</p>
+                                    <p class="text-slate-400 mt-1" id="explainable-msg-thai">
+                                        ระบบเพิ่มสถานะเป็น “เตือน” เนื่องจากพบการเปลี่ยนแปลงของสัญญาณชีพร่วมกัน ได้แก่ อัตราการเต้นหัวใจ (HR) สูงกว่าค่าพื้นฐาน, ความแปรปรวนของหัวใจ (HRV) ลดลงมาก, อุณหภูมิร่างกายลดต่ำลง และผู้ใช้ไม่มีการขยับร่างกายในช่วงเวลานอนหลับ
+                                    </p>
+                                </div>
+                                <div class="p-4 rounded-xl bg-slate-900/60 border border-white/5">
+                                    <p class="font-bold text-slate-300">English Analysis:</p>
+                                    <p class="text-slate-400 mt-1" id="explainable-msg-eng">
+                                        The system raised the risk state to Warning because several physiological signals changed together: heart rate increased above the user's baseline, HRV proxy decreased, skin temperature dropped, and the user remained still during nighttime rest context.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations list -->
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 text-amber-500">
+                                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                                    <h3 class="text-sm font-bold uppercase tracking-wider">ข้อปฏิบัติที่แนะนำ (Action Protocol)</h3>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                                    <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <p class="font-bold text-amber-400">1. สังเกตอาการทางกายภาพ</p>
+                                        <p class="text-slate-400 mt-1 text-xs">สังเกตอาการเหงื่อออก, ใจสั่น, สั่นสะท้าน, หรือรู้สึกมึนงง</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <p class="font-bold text-amber-400">2. เจาะเลือดวัดยืนยัน</p>
+                                        <p class="text-slate-400 mt-1 text-xs">ตรวจวัดระดับน้ำตาลทันทีด้วย CGM หรือเครื่องเจาะวัดแบบมาตรฐาน</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <p class="font-bold text-amber-400">3. แจ้งผู้ดูแลใกล้ชิด</p>
+                                        <p class="text-slate-400 mt-1 text-xs">ในกรณีค่าน้ำตาลลดต่ำกว่า 70 mg/dL โปรดแจ้งผู้ดูแลทันที</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <p class="font-bold text-amber-400">4. ปฏิบัติตามคำแนะนำแพทย์</p>
+                                        <p class="text-slate-400 mt-1 text-xs">ปฏิบัติตามแผนการบริโภคคาร์โบไฮเดรตที่เหมาะสมเมื่อยืนยันสภาวะน้ำตาลต่ำ</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-white/5 flex gap-2">
+                                <button onclick="acknowledgeAlert()" class="flex-1 py-2 px-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-xs font-bold text-white transition-all text-center">
+                                    รับทราบคำเตือน (Acknowledge)
+                                </button>
+                                <button onclick="openVerifyModal()" class="flex-1 py-2 px-3 bg-orange-500 hover:bg-orange-600 rounded-xl text-xs font-bold text-white transition-all text-center">
+                                    บันทึกการยืนยันผลตรวจ (Verify)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. ALERT HISTORY TAB -->
+                <div id="tab-history" class="space-y-6 tab-content hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">ประวัติการแจ้งเตือน (Alert History Log)</h2>
+                            <p class="text-xs text-slate-400">บันทึกเหตุการณ์ความเสี่ยงย้อนหลังในระบบ</p>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="triggerExport('CSV')" class="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                                <i data-lucide="download" class="w-4 h-4 text-indigo-400"></i> Export CSV
+                            </button>
+                            <button onclick="triggerExport('PDF')" class="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                                <i data-lucide="file-text" class="w-4 h-4 text-cyan-400"></i> Export PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters bar -->
+                    <div class="glass-panel rounded-2xl p-4 flex flex-wrap gap-2 items-center justify-between">
+                        <div class="flex gap-1.5">
+                            <button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-white border border-white/5" onclick="filterHistory('All')">ทั้งหมด (All)</button>
+                            <button class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200" onclick="filterHistory('Warning')">ระดับเตือนภัย (Warning)</button>
+                            <button class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200" onclick="filterHistory('High Risk')">ระดับเสี่ยงสูง (High Risk)</button>
+                        </div>
+                        <div class="text-xs text-indigo-300 font-mono" id="history-total-count">Showing 5 incidents</div>
+                    </div>
+
+                    <!-- History Table container -->
+                    <div class="glass-panel rounded-2xl p-6 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-white/5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                                        <th class="pb-3">เวลาที่บันทึก (Time)</th>
+                                        <th class="pb-3 text-center">ระดับความเสี่ยง (State)</th>
+                                        <th class="pb-3 text-center">คะแนนเสี่ยง (Score)</th>
+                                        <th class="pb-3">สาเหตุหลัก (Main Reason)</th>
+                                        <th class="pb-3 text-center">การยืนยันผู้ใช้ (User Action)</th>
+                                        <th class="pb-3 text-center">การดำเนินการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-xs divide-y divide-white/5" id="history-table-body">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. DEVICE & DATA QUALITY TAB -->
+                <div id="tab-device" class="space-y-6 tab-content hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">ข้อมูลคุณภาพสัญญาณและสุขภาพอุปกรณ์</h2>
+                            <p class="text-xs text-slate-400">Samsung Galaxy Watch 7 Diagnostics & Wear OS Stream Quality</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Device summary info -->
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-4">ข้อมูลจำเพาะอุปกรณ์ (Device Spec)</h3>
+                                <div class="space-y-3 text-xs">
+                                    <div class="flex justify-between py-1 border-b border-white/5">
+                                        <span class="text-slate-400">โมเดลนาฬิกา:</span>
+                                        <span class="text-slate-200 font-bold">Samsung Galaxy Watch 7</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-white/5">
+                                        <span class="text-slate-400">ระบบปฏิบัติการ:</span>
+                                        <span class="text-slate-200 font-mono">Wear OS 4 (HS-Collector v0.1.0)</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-white/5">
+                                        <span class="text-slate-400">สถานะเชื่อมต่อ:</span>
+                                        <span class="text-emerald-400 font-bold" id="device-tab-connection">Synced</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-white/5">
+                                        <span class="text-slate-400">ระดับแบตเตอรี่:</span>
+                                        <span class="text-slate-200 font-bold font-mono" id="device-tab-battery">72%</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-white/5">
+                                        <span class="text-slate-400">สัญญาณบลูทูธ (RSSI):</span>
+                                        <span class="text-slate-200 font-mono" id="device-tab-rssi">-62 dBm</span>
+                                    </div>
+                                    <div class="flex justify-between py-1">
+                                        <span class="text-slate-400">เซ็นเซอร์การสวมใส่:</span>
+                                        <span class="text-slate-200" id="device-tab-wearing">Wearing</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-white/5">
+                                <button onclick="reconnectDevice()" class="w-full py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-xs font-bold text-indigo-300 transition-all text-center">
+                                    รีเซ็ตการเชื่อมต่อบลูทูธ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Data completeness progress bars -->
+                        <div class="glass-panel rounded-2xl p-6 lg:col-span-2 space-y-4">
+                            <h3 class="text-xs uppercase tracking-widest text-slate-400 font-bold">คุณภาพของข้อมูลแต่ละเซ็นเซอร์ (Sensor Data Completeness)</h3>
+                            
+                            <div class="space-y-4 text-xs">
+                                <div>
+                                    <div class="flex justify-between font-bold mb-1">
+                                        <span>Heart Rate Sensor (PPG Green/Infrared)</span>
+                                        <span class="font-mono text-cyan-400" id="quality-val-hr">98%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-white/5">
+                                        <div class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full transition-all duration-1000" id="quality-bar-hr" style="width: 98%;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between font-bold mb-1">
+                                        <span>HRV Proxy Estimator (Beat-to-Beat Interval)</span>
+                                        <span class="font-mono text-cyan-400" id="quality-val-hrv">93%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-white/5">
+                                        <div class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full transition-all duration-1000" id="quality-bar-hrv" style="width: 93%;"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between font-bold mb-1">
+                                        <span>Skin Temperature (Heat Flow Sensor)</span>
+                                        <span class="font-mono text-cyan-400" id="quality-val-temp">97%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-white/5">
+                                        <div class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full transition-all duration-1000" id="quality-bar-temp" style="width: 97%;"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between font-bold mb-1">
+                                        <span>Actigraphy / Motion (3-Axis Accelerometer)</span>
+                                        <span class="font-mono text-cyan-400" id="quality-val-motion">99%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-white/5">
+                                        <div class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full transition-all duration-1000" id="quality-bar-motion" style="width: 99%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Diagnostics Log Console -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-slate-200 mb-4">บันทึกระบบวิเคราะห์ (Sync & Diagnostic Log Console)</h3>
+                        <div class="bg-slate-950/80 border border-white/5 p-4 rounded-xl font-mono text-xs text-slate-400 space-y-2 h-40 overflow-y-auto no-scrollbar" id="device-sync-logs">
+                            <!-- Render dynamic lines from scenario in JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. SETTINGS & BASELINE TAB -->
+                <div id="tab-settings" class="space-y-6 tab-content hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">ข้อมูลส่วนบุคคลและการปรับแต่งค่าพื้นฐาน</h2>
+                            <p class="text-xs text-slate-400">Personalized Baseline Calibration & Settings</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Calibration Form -->
+                        <div class="glass-panel rounded-2xl p-6 lg:col-span-2 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-200">ค่าฐานสัญญาณชีพอ้างอิงส่วนบุคคล (Calibrated User Baseline)</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-bold uppercase">Resting HR Baseline (bpm)</label>
+                                    <input type="number" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" value="78" id="settings-base-hr">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-bold uppercase">Resting HRV Proxy Baseline (ms)</label>
+                                    <input type="number" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" value="53" id="settings-base-hrv">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-bold uppercase">Basal Skin Temp Baseline (°C)</label>
+                                    <input type="number" step="0.1" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" value="33.2" id="settings-base-temp">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-bold uppercase">Sleep Movement Baseline (g)</label>
+                                    <input type="number" step="0.01" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" value="0.11" id="settings-base-motion">
+                                </div>
+                            </div>
+
+                            <div class="pt-4 flex justify-end">
+                                <button onclick="triggerCalibration()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-500 hover:bg-indigo-600 transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-500/20">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4" id="calibration-spinner"></i> ปรับเทียบค่าอ้างอิงใหม่ (Recalibrate)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Calibration Status info -->
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <h3 class="text-sm font-bold text-slate-200">สถานะการปรับเทียบ (Calibration Status)</h3>
+                                <div class="space-y-3 text-xs">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">สถานะคาลิเบรต:</span>
+                                        <span class="text-emerald-400 font-bold flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> คาลิเบรตแล้ว (Active)</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">รอบประเมินเฉลี่ย:</span>
+                                        <span class="text-slate-200">7 คืนที่ผ่านมา</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">คุณภาพการคาลิเบรต:</span>
+                                        <span class="text-slate-200">ดีเยี่ยม (Index = 0.98)</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">อัปเดตล่าสุด:</span>
+                                        <span class="text-cyan-400 font-mono">23:15 น. วันนี้</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-slate-500 leading-normal pt-4 border-t border-white/5">
+                                * การตั้งค่าอ้างอิงที่เหมาะสมช่วยเพิ่มความแม่นยำในการวิเคราะห์สัญญาณชีพแบบจำเพาะส่วนบุคคล โมเดลจะทำงานได้เต็มประสิทธิภาพหลังจากเก็บข้อมูลต่อเนื่องครบ 7 คืน
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FLOATING PRESENTATION SCENARIO CONTROL CONSOLE -->
+            <div id="presentation-console" class="fixed bottom-4 left-4 right-4 md:left-6 md:right-6 bg-slate-950/90 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-xl p-3 z-40 transition-all duration-300 transform translate-y-0">
+                <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">SCENARIO SIMULATOR (ระบบจำลองสถานการณ์ทดสอบ)</h4>
+                        </div>
+                        <span class="text-xs text-slate-500 font-medium ml-4 leading-none mt-0.5">Controlled prototype test states for presentation and validation planning</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleConsole()" class="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-slate-200 animate-pulse" id="console-toggle-btn">
+                            <i data-lucide="chevron-up" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="console-body" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-2.5 overflow-x-auto no-scrollbar hidden">
+                    <button onclick="loadScenario('normal')" data-scen-btn="normal" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-indigo-500 text-white border-indigo-500/30">
+                        Normal Sleep
+                    </button>
+                    <button onclick="loadScenario('watch')" data-scen-btn="watch" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                        Watch
+                    </button>
+                    <button onclick="loadScenario('warning')" data-scen-btn="warning" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                        Warning
+                    </button>
+                    <button onclick="loadScenario('highRisk')" data-scen-btn="highRisk" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                        High Risk
+                    </button>
+                    <button onclick="loadScenario('falseAlarm')" data-scen-btn="falseAlarm" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                        Motion Noise
+                    </button>
+                    <button onclick="loadScenario('missingData')" data-scen-btn="missingData" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                        Missing Data
+                    </button>
+                    <button onclick="loadScenario('disconnected')" data-scen-btn="disconnected" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                        Disconnected
+                    </button>
+                    <button onclick="loadScenario('reconnected')" data-scen-btn="reconnected" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                        Reconnected
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MOBILE MENU DRAWER (Mobile Navigation) -->
+    <div id="mobile-menu" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300 opacity-0 pointer-events-none">
+        <div class="w-64 h-full bg-slate-950 border-r border-white/5 p-6 flex flex-col justify-between transition-transform duration-300 -translate-x-full" id="mobile-menu-panel">
+            <div class="space-y-6">
+                <!-- Close Button -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-bold text-indigo-400">เมนูการใช้งาน</span>
+                    <button onclick="toggleMobileMenu()" class="p-1 rounded bg-white/5 text-slate-400 hover:text-slate-200">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Nav Links Mobile -->
+                <nav class="space-y-2 text-sm flex flex-col">
+                    <button onclick="switchTabMobile('overview')" data-mob-btn="overview" class="w-full text-left px-3 py-2.5 rounded-lg bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">Overview / Monitor</button>
+                    <button onclick="switchTabMobile('trends')" data-mob-btn="trends" class="w-full text-left px-3 py-2.5 rounded-lg text-slate-400">Physiological Trends</button>
+                    <button onclick="switchTabMobile('engine')" data-mob-btn="engine" class="w-full text-left px-3 py-2.5 rounded-lg text-slate-400">Risk Engine Model</button>
+                    <button onclick="switchTabMobile('markov')" data-mob-btn="markov" class="w-full text-left px-3 py-2.5 rounded-lg text-slate-400">Markov State Flow</button>
+                    <button onclick="switchTabMobile('explainable')" data-mob-btn="explainable" class="w-full text-left px-3 py-2.5 rounded-lg text-slate-400">Explainable Alerts</button>
+                    <button onclick="switchTabMobile('history')" data-mob-btn="history" class="w-full text-left px-3 py-2.5 rounded-lg text-slate-400">Alert History Log</button>
+                    <button onclick="switchTabMobile('device')" data-mob-btn="device" class="w-full text-left px-3 py-2.5 rounded-lg text-slate-400">Device & Quality</button>
+                    <button onclick="switchTabMobile('settings')" data-mob-btn="settings" class="w-full text-left px-3 py-2.5 rounded-lg text-slate-400">Settings & Baseline</button>
+                </nav>
+            </div>
+            
+            <div class="text-xs text-slate-500 text-center">
+                <p class="font-bold text-amber-500/80 mb-1">Risk estimate only</p>
+                <p>Not a glucose diagnostic tool.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- VERIFY WITH CGM / GLUCOSE DIALOG MODAL -->
+    <div id="verify-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 space-y-4 transform scale-95 opacity-0 transition-all duration-300" id="verify-modal-panel">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-indigo-400">
+                    <i data-lucide="check-square" class="w-5 h-5"></i>
+                    <h3 class="text-md font-extrabold uppercase tracking-wide">ตรวจยืนยันผลน้ำตาลจริง (CGM / Finger-prick Verification)</h3>
+                </div>
+                <button onclick="closeVerifyModal()" class="p-1 rounded bg-white/5 text-slate-400 hover:text-slate-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <p class="text-slate-400 leading-normal">
+                    กรอกผลเจาะวัดระดับน้ำตาลในเลือดที่ได้จากเครื่องวัดน้ำตาลมาตรฐานของคุณ เพื่อใช้ในการคาลิเบรตโมเดลความปลอดภัยและตรวจสอบความถูกต้องของระบบ
+                </p>
+
+                <div class="space-y-1.5">
+                    <label class="text-slate-300 font-bold">ค่าระดับน้ำตาลที่วัดได้จริง (mg/dL)</label>
+                    <input type="number" id="verify-glucose-val" placeholder="ระบุตัวเลข (เช่น 72)" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-slate-100 font-mono text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-slate-300 font-bold">อาการที่ตรวจพบขณะนี้ (สังเกตตัวเอง)</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                        <label class="flex items-center gap-1.5 p-2 rounded bg-white/5 border border-white/5 cursor-pointer">
+                            <input type="checkbox" id="symp-sweat" class="accent-indigo-500">
+                            <span>เหงื่อออกตัวเย็น</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-2 rounded bg-white/5 border border-white/5 cursor-pointer">
+                            <input type="checkbox" id="symp-heart" class="accent-indigo-500">
+                            <span>ใจสั่นมือสั่น</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-2 rounded bg-white/5 border border-white/5 cursor-pointer">
+                            <input type="checkbox" id="symp-dizzy" class="accent-indigo-500">
+                            <span>มึนงง เวียนหัว</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-2 rounded bg-white/5 border border-white/5 cursor-pointer">
+                            <input type="checkbox" id="symp-none" class="accent-indigo-500">
+                            <span>ไม่มีอาการใดๆ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button onclick="closeVerifyModal()" class="py-2.5 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-slate-300 transition-all">ยกเลิก</button>
+                    <button onclick="submitVerification()" class="py-2.5 px-5 bg-indigo-500 hover:bg-indigo-600 rounded-xl text-xs font-bold text-white transition-all shadow-lg shadow-indigo-500/20">บันทึกยืนยันข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION STACK -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+
+
+    <!-- JAVASCRIPT STATE ENGINE -->
+    <script>
+        // Global variables for dynamic state
+        let currentTab = 'overview';
+        let currentScenario = 'warning';
+        let trendsChart = null;
+        let miniTrendChart = null;
+        let isConsoleCollapsed = true;
+
+        // Scenarios Database
+        const SCENARIOS = {
+            normal: {
+                name: "Normal Sleep (ปกติ - นอนหลับ)",
+                device: { connectionStatus: "synced", battery: 85, wearing: true, lastSync: "23:15:10", label: "Synced with Watch 7" },
+                risk: { state: "Normal", stateThai: "ปกติ", score: 0.15, confidence: "High", recommendation: "Keep wearing watch. Safe range.", color: "emerald" },
+                signals: {
+                    hr: { current: 68, baseline: 72, unit: "bpm", status: "Normal", diff: "-4", trend: "stable", contrib: 0.02 },
+                    hrv: { current: 58, baseline: 55, unit: "ms", status: "Optimal", diff: "+3", trend: "stable", contrib: 0.01 },
+                    temp: { current: 33.1, baseline: 33.0, unit: "°C", status: "Normal", diff: "+0.1", trend: "stable", contrib: 0.01 },
+                    movement: { current: 0.02, baseline: 0.08, unit: "g", status: "At Rest (Sleep)", diff: "-0.06", trend: "stable", contrib: 0.05 },
+                    sleep: { current: "Deep Sleep", status: "Optimal" }
+                },
+                dataQuality: { completeness: 98, missingMinutes: 0, signalQuality: "Excellent", syncReliability: 99 },
+                markov: { normal: 0.82, watch: 0.12, warning: 0.05, highRisk: 0.01, nextState: "Normal" },
+                explanations: [
+                    { reason: "Heart Rate in normal sleeping range", contribution: 0.05 },
+                    { reason: "HRV proxy remains healthy and stable", contribution: 0.04 },
+                    { reason: "Typical sleeping movement patterns detected", contribution: 0.04 },
+                    { reason: "Skin temperature stays within baseline limits", contribution: 0.02 }
+                ],
+                trend: [
+                    { time: "-30m", hr: 70, hrv: 55, temp: 33.0, movement: 0.05, risk: 0.12 },
+                    { time: "-24m", hr: 69, hrv: 56, temp: 33.0, movement: 0.03, risk: 0.13 },
+                    { time: "-18m", hr: 68, hrv: 57, temp: 33.1, movement: 0.02, risk: 0.14 },
+                    { time: "-12m", hr: 68, hrv: 58, temp: 33.1, movement: 0.02, risk: 0.15 },
+                    { time: "-6m", hr: 68, hrv: 58, temp: 33.1, movement: 0.02, risk: 0.15 },
+                    { time: "Now", hr: 68, hrv: 58, temp: 33.1, movement: 0.02, risk: 0.15 }
+                ],
+                syncLogs: [
+                    "23:15:10 - Bluetooth session synced successfully.",
+                    "23:10:00 - Accelerometer confirms zero physical activity.",
+                    "23:05:00 - RMSSD calculations output index = 1.00 (Healthy Variance)."
+                ]
+            },
+            watch: {
+                name: "Watch State (เฝ้าระวัง)",
+                device: { connectionStatus: "synced", battery: 82, wearing: true, lastSync: "23:30:15", label: "Synced with Watch 7" },
+                risk: { state: "Watch", stateThai: "เฝ้าระวัง", score: 0.42, confidence: "Medium", recommendation: "Observe for physical symptoms. Keep watch on.", color: "amber" },
+                signals: {
+                    hr: { current: 79, baseline: 72, unit: "bpm", status: "Slightly Elevated", diff: "+7", trend: "up", contrib: 0.12 },
+                    hrv: { current: 45, baseline: 55, unit: "ms", status: "Slightly Reduced", diff: "-10", trend: "down", contrib: 0.10 },
+                    temp: { current: 32.9, baseline: 33.0, unit: "°C", status: "Normal", diff: "-0.1", trend: "stable", contrib: 0.05 },
+                    movement: { current: 0.03, baseline: 0.08, unit: "g", status: "At Rest (Sleep)", diff: "-0.05", trend: "stable", contrib: 0.08 },
+                    sleep: { current: "Light Sleep", status: "Active" }
+                },
+                dataQuality: { completeness: 95, missingMinutes: 1, signalQuality: "Good", syncReliability: 96 },
+                markov: { normal: 0.35, watch: 0.45, warning: 0.15, highRisk: 0.05, nextState: "Watch" },
+                explanations: [
+                    { reason: "Heart Rate starting to deviate from sleeping baseline", contribution: 0.15 },
+                    { reason: "HRV proxy shows moderate decrease", contribution: 0.12 },
+                    { reason: "Stillness pattern in night context active", contribution: 0.09 },
+                    { reason: "Slight temperature drift", contribution: 0.06 }
+                ],
+                trend: [
+                    { time: "-30m", hr: 70, hrv: 55, temp: 33.0, movement: 0.03, risk: 0.15 },
+                    { time: "-24m", hr: 72, hrv: 53, temp: 33.0, movement: 0.02, risk: 0.20 },
+                    { time: "-18m", hr: 74, hrv: 50, temp: 32.9, movement: 0.03, risk: 0.28 },
+                    { time: "-12m", hr: 76, hrv: 48, temp: 32.9, movement: 0.03, risk: 0.34 },
+                    { time: "-6m", hr: 78, hrv: 46, temp: 32.9, movement: 0.03, risk: 0.39 },
+                    { time: "Now", hr: 79, hrv: 45, temp: 32.9, movement: 0.03, risk: 0.42 }
+                ],
+                syncLogs: [
+                    "23:30:15 - Packet streams received. Normal RSSI signal.",
+                    "23:25:00 - Modest increase in autonomic arousal index.",
+                    "23:20:00 - RMSSD baseline calculation shift: -10ms."
+                ]
+            },
+            warning: {
+                name: "Warning State (เตือนภัย - ค่ากลางคืนเปลี่ยน)",
+                device: { connectionStatus: "synced", battery: 72, wearing: true, lastSync: "23:45:12", label: "Synced with Watch 7" },
+                risk: { state: "Warning", stateThai: "เตือน", score: 0.67, confidence: "Medium-High", recommendation: "Verify with CGM / Glucose Meter", color: "orange" },
+                signals: {
+                    hr: { current: 96, baseline: 78, unit: "bpm", status: "Elevated", diff: "+18", trend: "up", contrib: 0.24 },
+                    hrv: { current: 32, baseline: 53, unit: "ms", status: "Reduced", diff: "-21", trend: "down", contrib: 0.21 },
+                    temp: { current: 32.8, baseline: 33.2, unit: "°C", status: "Slightly Low", diff: "-0.4", trend: "down", contrib: 0.14 },
+                    movement: { current: 0.04, baseline: 0.11, unit: "g", status: "Low activity / Resting", diff: "-0.07", trend: "stable", contrib: 0.08 },
+                    sleep: { current: "Night / Low-motion rest", status: "Active" }
+                },
+                dataQuality: { completeness: 93, missingMinutes: 2, signalQuality: "Good", syncReliability: 96 },
+                markov: { normal: 0.18, watch: 0.26, warning: 0.38, highRisk: 0.18, nextState: "Warning" },
+                explanations: [
+                    { reason: "HR above personal baseline", contribution: 0.24 },
+                    { reason: "HRV decreased from baseline", contribution: 0.21 },
+                    { reason: "Low movement during night", contribution: 0.14 },
+                    { reason: "Risk trend rising", contribution: 0.08 }
+                ],
+                trend: [
+                    { time: "-30m", hr: 78, hrv: 52, temp: 33.2, movement: 0.11, risk: 0.28 },
+                    { time: "-24m", hr: 82, hrv: 48, temp: 33.1, movement: 0.09, risk: 0.36 },
+                    { time: "-18m", hr: 87, hrv: 43, temp: 33.0, movement: 0.07, risk: 0.48 },
+                    { time: "-12m", hr: 91, hrv: 38, temp: 32.9, movement: 0.05, risk: 0.58 },
+                    { time: "-6m", hr: 94, hrv: 34, temp: 32.8, movement: 0.04, risk: 0.63 },
+                    { time: "Now", hr: 96, hrv: 32, temp: 32.8, movement: 0.04, risk: 0.67 }
+                ],
+                syncLogs: [
+                    "23:45:12 - State transitioned to WARNING. User alert sent to Android app.",
+                    "23:40:00 - Multi-sensor deviation alarm triggered.",
+                    "23:35:00 - High HR variance (+18 bpm above baseline) combined with low sleep movement."
+                ]
+            },
+            highRisk: {
+                name: "High Risk Alert (ความเสี่ยงสูงมาก)",
+                device: { connectionStatus: "synced", battery: 70, wearing: true, lastSync: "23:58:20", label: "Synced with Watch 7" },
+                risk: { state: "High Risk", stateThai: "เสี่ยงสูง", score: 0.88, confidence: "High", recommendation: "IMMEDIATE verification. Check symptoms. Refuel sugar if verified.", color: "red" },
+                signals: {
+                    hr: { current: 104, baseline: 78, unit: "bpm", status: "Severely Elevated", diff: "+26", trend: "up", contrib: 0.32 },
+                    hrv: { current: 24, baseline: 53, unit: "ms", status: "Severely Reduced", diff: "-29", trend: "down", contrib: 0.28 },
+                    temp: { current: 32.4, baseline: 33.2, unit: "°C", status: "Low Temp Shift", diff: "-0.8", trend: "down", contrib: 0.18 },
+                    movement: { current: 0.02, baseline: 0.11, unit: "g", status: "Extremely Still", diff: "-0.09", trend: "stable", contrib: 0.10 },
+                    sleep: { current: "Night / Rest (Unresponsive Warning)", status: "Critical" }
+                },
+                dataQuality: { completeness: 96, missingMinutes: 1, signalQuality: "Excellent", syncReliability: 98 },
+                markov: { normal: 0.06, watch: 0.14, warning: 0.30, highRisk: 0.50, nextState: "High Risk" },
+                explanations: [
+                    { reason: "Critical HR surge above baseline (+26 bpm)", contribution: 0.32 },
+                    { reason: "Critical HRV RMSSD crash (-29 ms)", contribution: 0.28 },
+                    { reason: "Significant peripheral temperature drop (-0.8 °C)", contribution: 0.18 },
+                    { reason: "Night rest stillness match score = 98%", contribution: 0.10 }
+                ],
+                trend: [
+                    { time: "-30m", hr: 85, hrv: 45, temp: 33.0, movement: 0.09, risk: 0.45 },
+                    { time: "-24m", hr: 90, hrv: 40, temp: 32.9, movement: 0.07, risk: 0.58 },
+                    { time: "-18m", hr: 96, hrv: 32, temp: 32.8, movement: 0.04, risk: 0.67 },
+                    { time: "-12m", hr: 100, hrv: 28, temp: 32.6, movement: 0.03, risk: 0.78 },
+                    { time: "-6m", hr: 102, hrv: 25, temp: 32.5, movement: 0.02, risk: 0.84 },
+                    { time: "Now", hr: 104, hrv: 24, temp: 32.4, movement: 0.02, risk: 0.88 }
+                ],
+                syncLogs: [
+                    "23:58:20 - HIGH RISK ALARM BROADCAST. Initiating companion call protocols.",
+                    "23:55:00 - Core temperature signature drops below alarm limit (<32.5°C).",
+                    "23:50:00 - HRV down to 24ms. Severe sympathetic overdrive indication."
+                ]
+            },
+            falseAlarm: {
+                name: "Movement False Alarm (สัญญาณรบกวนจากการเคลื่อนไหว)",
+                device: { connectionStatus: "synced", battery: 80, wearing: true, lastSync: "23:49:05", label: "Synced with Watch 7" },
+                risk: { state: "Normal", stateThai: "ปกติ", score: 0.18, confidence: "High (Verified Motion)", recommendation: "False alarm suppressed due to high movement.", color: "emerald" },
+                signals: {
+                    hr: { current: 102, baseline: 78, unit: "bpm", status: "Elevated (Active)", diff: "+24", trend: "up", contrib: 0.05 },
+                    hrv: { current: 48, baseline: 53, unit: "ms", status: "Normal (Active)", diff: "-5", trend: "down", contrib: 0.02 },
+                    temp: { current: 33.4, baseline: 33.2, unit: "°C", status: "Normal", diff: "+0.2", trend: "up", contrib: 0.01 },
+                    movement: { current: 0.68, baseline: 0.11, unit: "g", status: "High Activity / Movement", diff: "+0.57", trend: "up", contrib: 0.10 },
+                    sleep: { current: "Awake / Active", status: "Active" }
+                },
+                dataQuality: { completeness: 98, missingMinutes: 0, signalQuality: "Excellent", syncReliability: 98 },
+                markov: { normal: 0.78, watch: 0.15, warning: 0.05, hrv: 0.02, nextState: "Normal" },
+                explanations: [
+                    { reason: "High physical movement suppresses risk logic", contribution: 0.10 },
+                    { reason: "Active heart rate matches movement index", contribution: 0.05 },
+                    { reason: "No nighttime stillness context", contribution: 0.02 },
+                    { reason: "Skin temp matches active baseline", contribution: 0.01 }
+                ],
+                trend: [
+                    { time: "-30m", hr: 78, hrv: 53, temp: 33.2, movement: 0.12, risk: 0.20 },
+                    { time: "-24m", hr: 80, hrv: 52, temp: 33.2, movement: 0.15, risk: 0.22 },
+                    { time: "-18m", hr: 85, hrv: 51, temp: 33.3, movement: 0.30, risk: 0.25 },
+                    { time: "-12m", hr: 92, hrv: 50, temp: 33.3, movement: 0.45, risk: 0.22 },
+                    { time: "-6m", hr: 98, hrv: 49, temp: 33.4, movement: 0.60, risk: 0.19 },
+                    { time: "Now", hr: 102, hrv: 48, temp: 33.4, movement: 0.68, risk: 0.18 }
+                ],
+                syncLogs: [
+                    "23:49:05 - Motion baseline calibration completed. Alert filter = ACTIVE.",
+                    "23:45:00 - High actigraphy index overrides autonomic hazard model.",
+                    "23:40:00 - Accelerometer registers major movement: 0.68g."
+                ]
+            },
+            missingData: {
+                name: "Missing Data (ข้อมูลขาดหาย - สวมใส่นาฬิกาไม่แน่น)",
+                device: { connectionStatus: "synced", battery: 78, wearing: false, lastSync: "23:38:45", label: "Synced (No Fit)" },
+                risk: { state: "Watch", stateThai: "เฝ้าระวัง", score: 0.35, confidence: "Low (Poor Signal)", recommendation: "Adjust watch fitment. Ensure sensor contact.", color: "amber" },
+                signals: {
+                    hr: { current: "--", baseline: 78, unit: "bpm", status: "Sensor Error", diff: "N/A", trend: "unknown", contrib: 0.15 },
+                    hrv: { current: "--", baseline: 53, unit: "ms", status: "Sensor Error", diff: "N/A", trend: "unknown", contrib: 0.10 },
+                    temp: { current: 28.5, baseline: 33.2, unit: "°C", status: "Ambient Temp", diff: "-4.7", trend: "down", contrib: 0.05 },
+                    movement: { current: 0.01, baseline: 0.11, unit: "g", status: "Off Wrist / Motionless", diff: "-0.10", trend: "stable", contrib: 0.05 },
+                    sleep: { current: "Unknown (No Contact)", status: "Error" }
+                },
+                dataQuality: { completeness: 42, missingMinutes: 12, signalQuality: "Poor", syncReliability: 60 },
+                markov: { normal: 0.40, watch: 0.45, warning: 0.10, highRisk: 0.05, nextState: "Watch" },
+                explanations: [
+                    { reason: "High missing data ratio triggers watch state safety protocol", contribution: 0.15 },
+                    { reason: "Optical heart rate sensor signal lost", contribution: 0.10 },
+                    { reason: "Temperature drop due to sensor air contact", contribution: 0.05 },
+                    { reason: "Motionless state matches off-wrist context", contribution: 0.05 }
+                ],
+                trend: [
+                    { time: "-30m", hr: 78, hrv: 53, temp: 33.2, movement: 0.08, risk: 0.22 },
+                    { time: "-24m", hr: 77, hrv: 52, temp: 32.9, movement: 0.06, risk: 0.25 },
+                    { time: "-18m", hr: 76, hrv: 50, temp: 32.0, movement: 0.02, risk: 0.30 },
+                    { time: "-12m", hr: null, hrv: null, temp: 30.5, movement: 0.01, risk: 0.32 },
+                    { time: "-6m", hr: null, hrv: null, temp: 29.2, movement: 0.01, risk: 0.34 },
+                    { time: "Now", hr: null, hrv: null, temp: 28.5, movement: 0.01, risk: 0.35 }
+                ],
+                syncLogs: [
+                    "23:38:45 - PPG signal degraded: Quality Index = 8%. Check contact sensor.",
+                    "23:35:00 - Warning: Sensor-skin connection integrity failed.",
+                    "23:30:00 - Optical contact sensor reports off-wrist status."
+                ]
+            },
+            disconnected: {
+                name: "Disconnected Watch (นาฬิกาขาดการเชื่อมต่อ)",
+                device: { connectionStatus: "disconnected", battery: 0, wearing: false, lastSync: "23:12:04", label: "Disconnected" },
+                risk: { state: "Watch", stateThai: "เฝ้าระวัง", score: 0.30, confidence: "None", recommendation: "Check Bluetooth connection on companion app.", color: "amber" },
+                signals: {
+                    hr: { current: "--", baseline: 78, unit: "bpm", status: "Disconnected", diff: "N/A", trend: "unknown", contrib: 0.00 },
+                    hrv: { current: "--", baseline: 53, unit: "ms", status: "Disconnected", diff: "N/A", trend: "unknown", contrib: 0.00 },
+                    temp: { current: "--", baseline: 33.2, unit: "°C", status: "Disconnected", diff: "N/A", trend: "unknown", contrib: 0.00 },
+                    movement: { current: "--", baseline: 0.11, unit: "g", status: "Disconnected", diff: "N/A", trend: "unknown", contrib: 0.00 },
+                    sleep: { current: "Disconnected", status: "Error" }
+                },
+                dataQuality: { completeness: 0, missingMinutes: 33, signalQuality: "None", syncReliability: 0 },
+                markov: { normal: 0.25, watch: 0.50, warning: 0.20, highRisk: 0.05, nextState: "Watch" },
+                explanations: [
+                    { reason: "Bluetooth connection lost for over 30 minutes", contribution: 0.20 },
+                    { reason: "Risk score frozen at last known state", contribution: 0.10 }
+                ],
+                trend: [
+                    { time: "-30m", hr: null, hrv: null, temp: null, movement: null, risk: 0.30 },
+                    { time: "-24m", hr: null, hrv: null, temp: null, movement: null, risk: 0.30 },
+                    { time: "-18m", hr: null, hrv: null, temp: null, movement: null, risk: 0.30 },
+                    { time: "-12m", hr: null, hrv: null, temp: null, movement: null, risk: 0.30 },
+                    { time: "-6m", hr: null, hrv: null, temp: null, movement: null, risk: 0.30 },
+                    { time: "Now", hr: null, hrv: null, temp: null, movement: null, risk: 0.30 }
+                ],
+                syncLogs: [
+                    "23:45:00 - Sync check failed. Connection status: TIMEOUT.",
+                    "23:30:00 - Reconnect retries exhausted. Bluetooth transceiver offline.",
+                    "23:12:04 - Watch packet disconnect. Initiating connection standby."
+                ]
+            },
+            reconnected: {
+                name: "Reconnected Watch (เชื่อมต่ออีกครั้ง - ซิงก์ข้อมูลแล้ว)",
+                device: { connectionStatus: "synced", battery: 71, wearing: true, lastSync: "00:02:10", label: "Synced with Watch 7" },
+                risk: { state: "Warning", stateThai: "เตือน", score: 0.64, confidence: "Medium", recommendation: "Verify with CGM / Glucose Meter. Sync backlog recovered.", color: "orange" },
+                signals: {
+                    hr: { current: 94, baseline: 78, unit: "bpm", status: "Elevated", diff: "+16", trend: "up", contrib: 0.22 },
+                    hrv: { current: 34, baseline: 53, unit: "ms", status: "Reduced", diff: "-19", trend: "down", contrib: 0.20 },
+                    temp: { current: 32.8, baseline: 33.2, unit: "°C", status: "Slightly Low", diff: "-0.4", trend: "down", contrib: 0.12 },
+                    movement: { current: 0.03, baseline: 0.11, unit: "g", status: "At Rest (Night)", diff: "-0.08", trend: "stable", contrib: 0.10 },
+                    sleep: { current: "Night / Rest Context", status: "Active" }
+                },
+                dataQuality: { completeness: 88, missingMinutes: 4, signalQuality: "Good", syncReliability: 90 },
+                markov: { normal: 0.20, watch: 0.28, warning: 0.36, highRisk: 0.16, nextState: "Warning" },
+                explanations: [
+                    { reason: "Recovered backlogged data indicates elevated heart rate", contribution: 0.22 },
+                    { reason: "HRV proxy shows significant drop over last 20m", contribution: 0.20 },
+                    { reason: "Skin temperature remains depressed", contribution: 0.12 },
+                    { reason: "Night rest stillness matches sleeping pattern", contribution: 0.10 }
+                ],
+                trend: [
+                    { time: "-30m", hr: 80, hrv: 48, temp: 33.1, movement: 0.08, risk: 0.35 },
+                    { time: "-24m", hr: 84, hrv: 45, temp: 33.0, movement: 0.06, risk: 0.42 },
+                    { time: "-18m", hr: null, hrv: null, temp: null, movement: null, risk: 0.42 },
+                    { time: "-12m", hr: null, hrv: null, temp: null, movement: null, risk: 0.42 },
+                    { time: "-6m", hr: 92, hrv: 36, temp: 32.9, movement: 0.04, risk: 0.58 },
+                    { time: "Now", hr: 94, hrv: 34, temp: 32.8, movement: 0.03, risk: 0.64 }
+                ],
+                syncLogs: [
+                    "00:02:10 - Handshake established. Pulling offline packet log.",
+                    "00:02:00 - Found 2 packets in offline log. Reconstructed data quality metrics.",
+                    "23:59:50 - Reconnect query accepted by WATCH-HS-007 companion transceiver."
+                ]
+            }
+        };
+
+        // Alert History Database (Mocked but interactive)
+        let alertHistory = [
+            { time: "23:45", state: "Warning", score: 0.67, reason: "HR↑ + HRV↓ + Night", action: "Verify", verifiedVal: null, status: "Active" },
+            { time: "23:30", state: "Watch", score: 0.42, reason: "HRV dropping", action: "Monitor", verifiedVal: null, status: "Acknowledged" },
+            { time: "23:15", state: "Normal", score: 0.15, reason: "Stable signals", action: "None", verifiedVal: null, status: "Clear" },
+            { time: "02:15", state: "Warning", score: 0.64, reason: "Risk trend rising", action: "Verify", verifiedVal: 94, status: "Verified (CGM)" },
+            { time: "01:50", state: "Watch", score: 0.40, reason: "Low movement + Night", action: "Monitor", verifiedVal: null, status: "Clear" }
+        ];
+
+        // Init App on load
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadScenario('warning'); // Default state is warning as requested
+            initCharts();
+            renderHistoryTable('All');
+        });
+
+        // TABS NAVIGATION CONTROLLERS
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show target content
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            // Manage desktop buttons styles
+            document.querySelectorAll('[data-tab-btn]').forEach(btn => {
+                if (btn.getAttribute('data-tab-btn') === tabId) {
+                    btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-glass-inset";
+                } else {
+                    btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent";
+                }
+            });
+
+            // Re-render chart on tab switches to prevent resize bugs
+            setTimeout(() => {
+                if (trendsChart) trendsChart.resize();
+                if (miniTrendChart) miniTrendChart.resize();
+            }, 50);
+        }
+
+        function switchTabMobile(tabId) {
+            switchTab(tabId);
+            toggleMobileMenu();
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const panel = document.getElementById('mobile-menu-panel');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                setTimeout(() => {
+                    menu.classList.remove('opacity-0', 'pointer-events-none');
+                    panel.classList.remove('-translate-x-full');
+                }, 50);
+            } else {
+                menu.classList.add('opacity-0', 'pointer-events-none');
+                panel.classList.add('-translate-x-full');
+                setTimeout(() => menu.classList.add('hidden'), 300);
+            }
+        }
+
+        // DYNAMIC STATE ENGINE - LOAD SCENARIO
+        function loadScenario(scenarioId) {
+            currentScenario = scenarioId;
+            const data = SCENARIOS[scenarioId];
+            
+            // Update Active scenario btn styles
+            document.querySelectorAll('[data-scen-btn]').forEach(btn => {
+                if (btn.getAttribute('data-scen-btn') === scenarioId) {
+                    btn.className = "py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center bg-indigo-500 text-white border-indigo-500/30";
+                } else {
+                    btn.className = "py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5";
+                }
+            });
+
+            // Trigger beautiful Toast notification
+            showToast(`จำลองสภาวะ: ${data.name}`, 'info');
+
+            // 1. Header updates
+            document.getElementById('overview-last-sync').innerText = data.device.lastSync;
+            
+            // Sync status badge & colors
+            const syncBadge = document.getElementById('device-sync-badge');
+            const syncBadgeText = document.getElementById('sync-badge-text');
+            const syncBadgeDot = document.getElementById('sync-badge-dot');
+            
+            if (data.device.connectionStatus === 'synced') {
+                syncBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400";
+                syncBadgeText.innerText = "Synced";
+                syncBadgeDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+            } else if (data.device.connectionStatus === 'connecting') {
+                syncBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400";
+                syncBadgeText.innerText = "Connecting";
+                syncBadgeDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
+            } else {
+                syncBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 shadow-glow-rose";
+                syncBadgeText.innerText = "Signal Lost";
+                syncBadgeDot.className = "relative inline-flex rounded-full h-2 w-2 bg-rose-500";
+            }
+
+            // 2. Watch card updates
+            document.getElementById('overview-battery-pct').innerText = `${data.device.battery}%`;
+            document.getElementById('overview-battery-pct').className = data.device.battery > 20 ? "text-emerald-400 font-bold" : "text-rose-500 font-bold animate-pulse";
+            document.getElementById('overview-wear-status').innerText = data.device.wearing ? "Wearing (สวมใส่)" : "Off-wrist (ไม่ได้สวมใส่)";
+            document.getElementById('overview-wear-status').className = data.device.wearing ? "text-slate-200" : "text-rose-400 font-bold";
+            document.getElementById('overview-signal-stream').innerText = data.device.connectionStatus === 'synced' ? "Active Stream" : "Inactive";
+            document.getElementById('overview-process-window').innerText = data.device.connectionStatus === 'synced' ? "5–15 min" : "N/A";
+            
+            // Adjust Watch SVG colors & display
+            const watchScreen = document.getElementById('watch-screen');
+            const watchScreenRing = document.getElementById('watch-screen-ring');
+            const watchPulseLine = document.getElementById('watch-pulse-line');
+            const watchStatusDot = document.getElementById('watch-status-dot');
+            const watchRadar = document.getElementById('watch-radar');
+
+            if (data.device.connectionStatus === 'disconnected') {
+                watchScreen.setAttribute('fill', '#1e293b');
+                watchScreenRing.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+                watchPulseLine.setAttribute('stroke', '#64748b');
+                watchPulseLine.classList.remove('animate-pulse');
+                watchStatusDot.setAttribute('fill', '#ef4444');
+                watchRadar.style.display = 'none';
+            } else {
+                watchScreen.setAttribute('fill', '#020617');
+                watchScreenRing.setAttribute('stroke', data.risk.color === 'red' ? 'rgba(244,63,94,0.3)' : 'rgba(99,102,241,0.2)');
+                watchPulseLine.setAttribute('stroke', data.risk.color === 'red' ? '#f43f5e' : (data.risk.color === 'orange' ? '#f97316' : '#22d3ee'));
+                watchPulseLine.classList.add('animate-pulse');
+                watchStatusDot.setAttribute('fill', '#10b981');
+                watchRadar.style.display = 'block';
+            }
+
+            // 3. Risk Card Updates
+            document.getElementById('risk-score-text').innerText = data.risk.score.toFixed(2);
+            document.getElementById('risk-confidence-label').innerText = `Confidence: ${data.risk.confidence}`;
+            
+            const badge = document.getElementById('risk-badge');
+            badge.innerText = `${data.risk.state} / ${data.risk.stateThai}`;
+            
+            // Setup Gauge circle calculation
+            const circle = document.getElementById('risk-gauge-circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (data.risk.score * circumference);
+            circle.style.strokeDashoffset = offset;
+
+            // Remove previous shadows/borders from range tags
+            document.getElementById('range-normal').className = "py-1 rounded bg-slate-900/40 border border-white/5";
+            document.getElementById('range-watch').className = "py-1 rounded bg-slate-900/40 border border-white/5";
+            document.getElementById('range-warning').className = "py-1 rounded bg-slate-900/40 border border-white/5";
+            document.getElementById('range-high').className = "py-1 rounded bg-slate-900/40 border border-white/5";
+
+            // Update badge color classes dynamically
+            if (data.risk.color === 'emerald') {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-glow-emerald";
+                document.getElementById('range-normal').className = "py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold";
+                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-emerald-400";
+                document.getElementById('risk-trend-thai').innerText = "ระดับความเสี่ยงปกติ";
+            } else if (data.risk.color === 'amber') {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-glow-amber";
+                document.getElementById('range-watch').className = "py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold";
+                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-amber-400";
+                document.getElementById('risk-trend-thai').innerText = "สัญญาณชีพเริ่มเบี่ยงเบน";
+            } else if (data.risk.color === 'orange') {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/30 shadow-glow-orange";
+                document.getElementById('range-warning').className = "py-1 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold";
+                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-orange-400";
+                document.getElementById('risk-trend-thai').innerText = "แนวโน้มความเสี่ยงเพิ่มขึ้น";
+            } else {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-glow-rose animate-pulse";
+                document.getElementById('range-high').className = "py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold";
+                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-rose-500 animate-pulse";
+                document.getElementById('risk-trend-thai').innerText = "ความเสี่ยงภาวะน้ำตาลต่ำระดับสูง";
+            }
+
+            // Adjust description details
+            if (scenarioId === 'normal') {
+                document.getElementById('risk-desc-long').innerText = "สัญญาณชีพทั้งหมดอยู่ในสภาวะสมดุล ร่างกายไม่มีการตอบสนองเชิงเครียด อัตราเต้นของหัวใจและความแปรปรวนสอดคล้องกับพฤติกรรมการนอนหลับปกติ";
+            } else if (scenarioId === 'watch') {
+                document.getElementById('risk-desc-long').innerText = "เริ่มพบสัญญานเตือนการเปลี่ยนผ่านระดับความเครียดของร่างกายเล็กน้อย (HRV เริ่มขยับลดต่ำลงเล็กน้อย) แนะนำให้ติดตามตรวจสอบต่อเนื่อง";
+            } else if (scenarioId === 'warning') {
+                document.getElementById('risk-desc-long').innerText = "ระบบพบรูปแบบการเปลี่ยนแปลงของสัญญาณชีพร่วมกัน เช่น อัตราการเต้นหัวใจสูงกว่าค่าฐาน ความแปรปรวนของหัวใจลดลง และมีการเคลื่อนไหวน้อยในช่วงพัก จึงประเมินว่าแนวโน้มความเสี่ยงเพิ่มขึ้น และแนะนำให้ตรวจยืนยันด้วย CGM หรือเครื่องตรวจน้ำตาลมาตรฐาน";
+            } else if (scenarioId === 'highRisk') {
+                document.getElementById('risk-desc-long').innerText = "พบสัญญาณชีพวิกฤติ! อัตราชีพจรพุ่งสูงขึ้นอย่างก้าวร้าวร่วมกับการร่วงลงของ HRV ในขณะนอนนิ่งและอุณหภูมิร่างกายลดต่ำอย่างรุนแรง บ่งบอกความเสี่ยงสูงสุด ควรรีบเจาะเลือดวัดระดับน้ำตาลยืนยันทันที!";
+            } else if (scenarioId === 'falseAlarm') {
+                document.getElementById('risk-desc-long').innerText = "แม้ว่าอัตราหัวใจเต้นจะสูงขึ้น แต่ตรวจพบปริมาณการเคลื่อนไหวร่างกายอยู่ในเกณฑ์สูงมาก (ผู้ป่วยอาจออกกำลังกายหรือเคลื่อนไหว) ระบบ AI จึงยกเลิกการส่งคำเตือนความเสี่ยงภาวะน้ำตาลต่ำโดยอัตโนมัติ";
+            } else if (scenarioId === 'missingData') {
+                document.getElementById('risk-desc-long').innerText = "ข้อมูลขาดหายเนื่องจากตรวจพบเซ็นเซอร์ไม่สัมผัสผิวหนัง (Off Wrist) ระบบทำการเข้าสู่โหมดเฝ้าระวังความปลอดภัยอัตโนมัติ โปรดปรับการสวมใส่สายนาฬิกาให้แน่น";
+            } else if (scenarioId === 'disconnected') {
+                document.getElementById('risk-desc-long').innerText = "สัญญาณบลูทูธขาดหายเกิน 30 นาที คะแนนความเสี่ยงถูกตรึงไว้ที่ค่าล่าสุด แนะนำตรวจสอบการเชื่อมต่อระหว่างโทรศัพท์และนาฬิกา";
+            } else {
+                document.getElementById('risk-desc-long').innerText = "เชื่อมต่อนาฬิกาสำเร็จและดึงข้อมูลย้อนหลังจากกล่องเก็บบัฟเฟอร์มาซิงก์ประมวลผลแล้ว ตรวจพบความเสี่ยงแนวโน้มความเสี่ยงเพิ่มขึ้นในข้อมูลช่วงที่ขาดหาย";
+            }
+
+            // 4. Update Live Signal Cards
+            document.getElementById('hr-val-text').innerText = data.signals.hr.current;
+            document.getElementById('hr-status-badge').innerText = data.signals.hr.status;
+            document.getElementById('hr-diff-text').innerHTML = getDiffHtml(data.signals.hr.diff, 'bpm');
+
+            document.getElementById('hrv-val-text').innerText = data.signals.hrv.current;
+            document.getElementById('hrv-status-badge').innerText = data.signals.hrv.status;
+            document.getElementById('hrv-diff-text').innerHTML = getDiffHtml(data.signals.hrv.diff, 'ms');
+
+            document.getElementById('temp-val-text').innerText = data.signals.temp.current;
+            document.getElementById('temp-status-badge').innerText = data.signals.temp.status;
+            document.getElementById('temp-diff-text').innerHTML = getDiffHtml(data.signals.temp.diff, '°C');
+
+            document.getElementById('movement-val-text').innerText = data.signals.movement.current;
+            document.getElementById('movement-status-badge').innerText = data.signals.movement.status;
+            document.getElementById('movement-diff-text').innerHTML = getDiffHtml(data.signals.movement.diff, 'g');
+
+            document.getElementById('sleep-val-text').innerText = data.signals.sleep.current;
+            document.getElementById('sleep-status-badge').innerText = data.signals.sleep.status;
+
+            // 5. Update Overview Reasons List
+            const reasonsList = document.getElementById('overview-reasons-list');
+            reasonsList.innerHTML = '';
+            data.explanations.forEach((exp, idx) => {
+                reasonsList.innerHTML += `
+                    <li class="flex items-center justify-between text-xs p-2 rounded bg-white/5 border border-white/5">
+                        <span class="text-slate-300">${idx + 1}. ${exp.reason}</span>
+                        <span class="text-orange-400 font-mono font-bold">+${exp.contribution.toFixed(2)}</span>
+                    </li>
+                `;
+            });
+
+            // 6. Update Trends Table
+            updateTrendsTable(data);
+
+            // 7. Update Markov nodes
+            document.getElementById('markov-p-normal').innerText = data.markov.normal.toFixed(2);
+            document.getElementById('markov-p-watch').innerText = data.markov.watch.toFixed(2);
+            document.getElementById('markov-p-warning').innerText = data.markov.warning.toFixed(2);
+            document.getElementById('markov-p-highRisk').innerText = (data.markov.highRisk || data.markov.hrv || 0.0).toFixed(2);
+            document.getElementById('markov-next-state-text').innerText = data.markov.nextState ? `${data.markov.nextState} State` : `${data.risk.state} State`;
+
+            // Reset Markov highlighting
+            const nodes = ['normal', 'watch', 'warning', 'highRisk'];
+            nodes.forEach(n => {
+                const el = document.getElementById(`markov-node-${n}`);
+                const row = document.getElementById(`matrix-row-${n}`);
+                if (el) {
+                    el.className = "p-5 rounded-2xl bg-slate-900/60 border border-white/5 text-center relative";
+                }
+                if (row) {
+                    row.className = "hover:bg-white/5";
+                }
+            });
+            
+            // Highlight current state node and row in Markov tab
+            let curStateKey = 'normal';
+            if (data.risk.state === 'Watch') curStateKey = 'watch';
+            else if (data.risk.state === 'Warning') curStateKey = 'warning';
+            else if (data.risk.state === 'High Risk') curStateKey = 'highRisk';
+
+            const activeNode = document.getElementById(`markov-node-${curStateKey}`);
+            const activeRow = document.getElementById(`matrix-row-${curStateKey}`);
+            if (activeNode) {
+                const colorMap = { normal: 'emerald-500/20 border-emerald-500/40', watch: 'amber-500/20 border-amber-500/40', warning: 'orange-500/20 border-orange-500/40', highRisk: 'rose-500/20 border-rose-500/40 shadow-glow-rose' };
+                activeNode.className = `p-5 rounded-2xl bg-${colorMap[curStateKey]} border text-center relative`;
+            }
+            if (activeRow) {
+                activeRow.className = "hover:bg-white/5 bg-indigo-500/5 font-bold";
+            }
+
+            // 8. Update Explainable AI tab
+            const explainableContainer = document.getElementById('explainable-contributions-container');
+            explainableContainer.innerHTML = '';
+            
+            // Total score item
+            explainableContainer.innerHTML += `
+                <div class="space-y-1">
+                    <div class="flex justify-between font-bold text-xs text-white">
+                        <span>คะแนนความเสี่ยงประมวลผลสะสม (Total Risk Score)</span>
+                        <span class="font-mono text-cyan-400">${data.risk.score.toFixed(2)}</span>
+                    </div>
+                    <div class="w-full bg-slate-950 rounded-full h-3.5 overflow-hidden border border-white/10 shadow-inner">
+                        <div class="bg-gradient-to-r from-indigo-500 via-cyan-400 to-rose-500 h-full rounded-full transition-all duration-1000" style="width: ${data.risk.score * 100}%;"></div>
+                    </div>
+                </div>
+                <div class="h-[1px] bg-white/5 my-4"></div>
+            `;
+
+            // Signal contributions
+            data.explanations.forEach(exp => {
+                const pct = (exp.contribution / 0.5) * 100; // Normalised for scaling visual bars
+                explainableContainer.innerHTML += `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-slate-300">
+                            <span>${exp.reason}</span>
+                            <span class="font-mono text-orange-400 font-bold">+${exp.contribution.toFixed(2)}</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-white/5">
+                            <div class="bg-gradient-to-r from-orange-400 to-amber-500 h-full rounded-full transition-all duration-1000" style="width: ${Math.min(pct, 100)}%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('explainable-msg-thai').innerText = scenarioId === 'falseAlarm' ?
+                "ระบบกรองความปลอดภัยตรวจสอบแล้วพบว่า อัตราการขยับร่างกายสูงเกินขีดจำกัด จึงระงับการออกคำเตือนและคงสถานะปกติ" :
+                (scenarioId === 'missingData' ? "ระบบระบุข้อขัดข้องของระดับสัญญาณชีพและดึงค่าเฝ้าระวังอัตโนมัติเนื่องจากเซ็นเซอร์หลวม" :
+                `ระบบประเมินสถานะความเสี่ยงไว้ที่ระดับ “${data.risk.stateThai}” เนื่องจากพบการเปลี่ยนแปลงร่วมกันของสัญญาณชีพหลัก: ชีพจรเฉลี่ยสูงกว่าค่าเฉลี่ยปกติ ${data.signals.hr.diff} bpm, ดัชนี HRV เปลี่ยนแปลง ${data.signals.hrv.diff} ms, และพบสภาวะอุณหภูมิผิวหนังเบี่ยงเบน`);
+            
+            document.getElementById('explainable-msg-eng').innerText = scenarioId === 'falseAlarm' ?
+                "The safety filter suppressed all active alarm rules because user movements index is significantly above physical resting ranges." :
+                `Risk state evaluated as "${data.risk.state}" due to joint signal variations: Heart rate deviated ${data.signals.hr.diff} bpm from baseline, HRV proxy changed ${data.signals.hrv.diff} ms, and skin temperature shifted by ${data.signals.temp.diff}°C.`;
+
+            // 9. Update Device Tab
+            document.getElementById('device-tab-connection').innerText = data.device.connectionStatus === 'synced' ? "Synced (เชื่อมต่อแล้ว)" : "Disconnected (สัญญาณขาด)";
+            document.getElementById('device-tab-connection').className = data.device.connectionStatus === 'synced' ? "text-emerald-400 font-bold" : "text-rose-500 font-bold";
+            document.getElementById('device-tab-battery').innerText = `${data.device.battery}%`;
+            document.getElementById('device-tab-wearing').innerText = data.device.wearing ? "Wearing (สวมใส่อยู่)" : "Off-wrist (ไม่ได้สวม)";
+            document.getElementById('device-tab-rssi').innerText = data.device.connectionStatus === 'synced' ? "-62 dBm" : "N/A";
+
+            // Update Sensor completion percentages
+            document.getElementById('quality-val-hr').innerText = `${data.dataQuality.completeness}%`;
+            document.getElementById('quality-bar-hr').style.width = `${data.dataQuality.completeness}%`;
+            document.getElementById('quality-val-hrv').innerText = `${data.dataQuality.completeness - 5}%`;
+            document.getElementById('quality-bar-hrv').style.width = `${data.dataQuality.completeness - 5}%`;
+            document.getElementById('quality-val-temp').innerText = `${data.dataQuality.completeness - 1}%`;
+            document.getElementById('quality-bar-temp').style.width = `${data.dataQuality.completeness - 1}%`;
+            document.getElementById('quality-val-motion').innerText = `${data.dataQuality.completeness + 1}%`;
+            document.getElementById('quality-bar-motion').style.width = `${data.dataQuality.completeness + 1}%`;
+
+            // 10. Sync Log console update
+            const logsConsole = document.getElementById('device-sync-logs');
+            logsConsole.innerHTML = '';
+            data.syncLogs.forEach(log => {
+                logsConsole.innerHTML += `<p class="hover:text-white">${log}</p>`;
+            });
+
+            // 11. Update Charts
+            updateChartsData(data.trend);
+        }
+
+        // HELPERS
+        function getDiffHtml(diffVal, unit) {
+            if (diffVal === 'N/A' || diffVal === 'N/A from baseline') {
+                return `<span class="text-slate-500">N/A</span>`;
+            }
+            const isNegative = diffVal.startsWith('-');
+            const isZero = diffVal === 'stable' || diffVal === '0' || diffVal === '+0' || diffVal === '-0';
+            
+            if (isZero) {
+                return `<i data-lucide="minus" class="w-3 h-3 text-slate-400"></i> <span class="text-slate-400 font-bold">Stable</span>`;
+            }
+            if (isNegative) {
+                return `<i data-lucide="trending-down" class="w-3 h-3 text-cyan-400"></i> <span class="text-cyan-400 font-bold">${diffVal}</span> ${unit}`;
+            }
+            return `<i data-lucide="trending-up" class="w-3 h-3 text-red-400"></i> <span class="text-red-400 font-bold">${diffVal}</span> ${unit}`;
+        }
+
+        function updateTrendsTable(data) {
+            const body = document.getElementById('trends-table-body');
+            body.innerHTML = `
+                <tr class="hover:bg-white/5">
+                    <td class="py-3 text-slate-300 font-medium">Heart Rate (อัตราเต้นหัวใจ)</td>
+                    <td class="py-3 text-center text-white font-mono">${data.signals.hr.current} bpm</td>
+                    <td class="py-3 text-center text-slate-400 font-mono">${data.signals.hr.baseline} bpm</td>
+                    <td class="py-3 text-center font-mono font-bold text-red-400">${data.signals.hr.diff} bpm</td>
+                    <td class="py-3 text-slate-300">${data.signals.hr.status}</td>
+                </tr>
+                <tr class="hover:bg-white/5">
+                    <td class="py-3 text-slate-300 font-medium">HRV RMSSD (ความแปรปรวนชีพจร)</td>
+                    <td class="py-3 text-center text-white font-mono">${data.signals.hrv.current} ms</td>
+                    <td class="py-3 text-center text-slate-400 font-mono">${data.signals.hrv.baseline} ms</td>
+                    <td class="py-3 text-center font-mono font-bold text-cyan-400">${data.signals.hrv.diff} ms</td>
+                    <td class="py-3 text-slate-300">${data.signals.hrv.status}</td>
+                </tr>
+                <tr class="hover:bg-white/5">
+                    <td class="py-3 text-slate-300 font-medium">Skin Temp (อุณหภูมิผิวหนัง)</td>
+                    <td class="py-3 text-center text-white font-mono">${data.signals.temp.current} °C</td>
+                    <td class="py-3 text-center text-slate-400 font-mono">${data.signals.temp.baseline} °C</td>
+                    <td class="py-3 text-center font-mono font-bold text-blue-400">${data.signals.temp.diff} °C</td>
+                    <td class="py-3 text-slate-300">${data.signals.temp.status}</td>
+                </tr>
+                <tr class="hover:bg-white/5">
+                    <td class="py-3 text-slate-300 font-medium">Actigraphy Movement (การเคลื่อนไหว)</td>
+                    <td class="py-3 text-center text-white font-mono">${data.signals.movement.current} g</td>
+                    <td class="py-3 text-center text-slate-400 font-mono">${data.signals.movement.baseline} g</td>
+                    <td class="py-3 text-center font-mono font-bold text-emerald-400">${data.signals.movement.diff} g</td>
+                    <td class="py-3 text-slate-300">${data.signals.movement.status}</td>
+                </tr>
+            `;
+        }
+
+        // CHARTS INITS
+        function initCharts() {
+            // Chart.js defaults customization for cyber dark look
+            Chart.defaults.color = 'rgba(255, 255, 255, 0.4)';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+            Chart.defaults.font.family = "'Plus Jakarta Sans', 'Inter', sans-serif";
+
+            // 1. Mini Trend Chart Overview
+            const ctxMini = document.getElementById('miniTrendChart').getContext('2d');
+            miniTrendChart = new Chart(ctxMini, {
+                type: 'line',
+                data: {
+                    labels: ['-30m', '-24m', '-18m', '-12m', '-6m', 'Now'],
+                    datasets: [{
+                        label: 'Risk Score (คะแนนความเสี่ยง)',
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#f97316',
+                        data: [0.28, 0.36, 0.48, 0.58, 0.63, 0.67]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 1.0,
+                            ticks: { stepSize: 0.2 }
+                        }
+                    }
+                }
+            });
+
+            // 2. Multi-series Detailed Trends Chart
+            const ctxTrends = document.getElementById('trendsChart').getContext('2d');
+            trendsChart = new Chart(ctxTrends, {
+                type: 'line',
+                data: {
+                    labels: ['-30m', '-24m', '-18m', '-12m', '-6m', 'Now'],
+                    datasets: [
+                        {
+                            label: 'Heart Rate (bpm)',
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'yPhys',
+                            data: [78, 82, 87, 91, 94, 96]
+                        },
+                        {
+                            label: 'HRV RMSSD (ms)',
+                            borderColor: '#22d3ee',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'yPhys',
+                            data: [52, 48, 43, 38, 34, 32]
+                        },
+                        {
+                            label: 'Skin Temp (°C)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'yTemp',
+                            data: [33.2, 33.1, 33.0, 32.9, 32.8, 32.8]
+                        },
+                        {
+                            label: 'Risk Score (0-1.0)',
+                            borderColor: '#f97316',
+                            backgroundColor: 'rgba(249, 115, 22, 0.05)',
+                            fill: true,
+                            borderWidth: 3.5,
+                            tension: 0.3,
+                            yAxisID: 'yRisk',
+                            data: [0.28, 0.36, 0.48, 0.58, 0.63, 0.67]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        yPhys: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Physiological Units' },
+                            min: 20,
+                            max: 120
+                        },
+                        yTemp: {
+                            type: 'linear',
+                            position: 'left',
+                            grid: { drawOnChartArea: false }, // Only keep main left axis grid lines
+                            title: { display: true, text: 'Temperature (°C)' },
+                            min: 25,
+                            max: 37
+                        },
+                        yRisk: {
+                            type: 'linear',
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Risk Score' },
+                            min: 0,
+                            max: 1.0
+                        }
+                    }
+                }
+            });
+        }
+
+        // UPDATE CHARTS DYNAMICALLY ON SCENARIO SWITCH
+        function updateChartsData(trendData) {
+            if (!trendsChart || !miniTrendChart) return;
+
+            const labels = trendData.map(t => t.time);
+            
+            // 1. Update mini chart
+            miniTrendChart.data.labels = labels;
+            miniTrendChart.data.datasets[0].data = trendData.map(t => t.risk);
+            miniTrendChart.update();
+
+            // 2. Update trends chart
+            trendsChart.data.labels = labels;
+            trendsChart.data.datasets[0].data = trendData.map(t => t.hr);
+            trendsChart.data.datasets[1].data = trendData.map(t => t.hrv);
+            trendsChart.data.datasets[2].data = trendData.map(t => t.temp);
+            trendsChart.data.datasets[3].data = trendData.map(t => t.risk);
+            trendsChart.update();
+        }
+
+        // ALERT HISTORY FUNCTIONS
+        function renderHistoryTable(filterState = 'All') {
+            const body = document.getElementById('history-table-body');
+            body.innerHTML = '';
+            
+            let filtered = alertHistory;
+            if (filterState !== 'All') {
+                filtered = alertHistory.filter(h => h.state === filterState);
+            }
+            
+            document.getElementById('history-total-count').innerText = `Showing ${filtered.length} incidents`;
+
+            filtered.forEach((row, idx) => {
+                const badgeColor = row.state === 'Warning' ? 'bg-orange-500/20 text-orange-400 border-orange-500/20' : 
+                                   (row.state === 'High Risk' ? 'bg-rose-500/20 text-rose-400 border-rose-500/20 shadow-glow-rose' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20');
+                
+                body.innerHTML += `
+                    <tr class="hover:bg-white/5 transition-all">
+                        <td class="py-4 text-slate-200 font-mono">${row.time} วันนี้</td>
+                        <td class="py-4 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${badgeColor}">
+                                ${row.state}
+                            </span>
+                        </td>
+                        <td class="py-4 text-center font-mono font-bold text-slate-100">${row.score.toFixed(2)}</td>
+                        <td class="py-4 text-slate-300 font-medium">${row.reason}</td>
+                        <td class="py-4 text-center">
+                            <span class="px-2 py-0.5 rounded text-xs font-semibold ${row.verifiedVal ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-900 text-slate-400'} border border-white/5">
+                                ${row.verifiedVal ? `เจาะวัด: ${row.verifiedVal} mg/dL` : row.status}
+                            </span>
+                        </td>
+                        <td class="py-4 text-center">
+                            <button onclick="viewHistoryDetail(${idx})" class="text-cyan-400 hover:text-cyan-300 font-bold hover:underline">รายละเอียด</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterHistory(state) {
+            // Manage filters UI buttons
+            const parent = document.getElementById('tab-history');
+            const btns = parent.querySelectorAll('button');
+            
+            renderHistoryTable(state);
+        }
+
+        function viewHistoryDetail(index) {
+            const row = alertHistory[index];
+            showToast(`รายละเอียดเหตุการณ์ ${row.time}: คะแนนเสี่ยง ${row.score.toFixed(2)}, สถานะ: ${row.status}`, 'info');
+        }
+
+        function triggerExport(type) {
+            showToast(`กำลังสร้างรายงาน ${type} สำเร็จ! ดาวน์โหลดไฟล์เสร็จสิ้น`, 'success');
+        }
+
+        // VERIFICATION MODAL CONTROLLERS
+        function openVerifyModal() {
+            const modal = document.getElementById('verify-modal');
+            const panel = document.getElementById('verify-modal-panel');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                panel.classList.remove('scale-95', 'opacity-0');
+            }, 50);
+        }
+
+        function closeVerifyModal() {
+            const modal = document.getElementById('verify-modal');
+            const panel = document.getElementById('verify-modal-panel');
+            
+            panel.classList.add('scale-95', 'opacity-0');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function submitVerification() {
+            const glucoseVal = document.getElementById('verify-glucose-val').value;
+            if (!glucoseVal || isNaN(glucoseVal)) {
+                showToast('กรุณากรอกตัวเลขระดับน้ำตาลที่วัดได้จริง', 'error');
+                return;
+            }
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            // Add new verification record to history
+            alertHistory.unshift({
+                time: timeStr,
+                state: SCENARIOS[currentScenario].risk.state,
+                score: SCENARIOS[currentScenario].risk.score,
+                reason: SCENARIOS[currentScenario].explanations[0].reason + " + Verified",
+                action: "Verified",
+                verifiedVal: parseInt(glucoseVal),
+                status: "Verified (CGM)"
+            });
+
+            renderHistoryTable('All');
+            closeVerifyModal();
+            showToast(`บันทึกข้อมูลน้ำตาล ${glucoseVal} mg/dL สำเร็จ! ข้อมูลซิงก์เข้าระบบคาลิเบรตเรียบร้อย`, 'success');
+        }
+
+        function acknowledgeAlert() {
+            showToast('รับทราบคำเตือนภัยเรียบร้อย ระบบเริ่มการเฝ้าระวังต่อเนื่อง 15 นาที', 'success');
+        }
+
+        // CALIBRATION SIMULATOR
+        function triggerCalibration() {
+            const spinner = document.getElementById('calibration-spinner');
+            spinner.classList.add('animate-spin');
+            
+            showToast('กำลังประมวลผลการคำนวณและปรับเทียบค่าฐานเฉลี่ย...', 'info');
+
+            setTimeout(() => {
+                spinner.classList.remove('animate-spin');
+                showToast('คาลิเบรตและสร้างค่าอ้างอิงส่วนบุคคลใหม่เสร็จสิ้น!', 'success');
+            }, 2000);
+        }
+
+        function reconnectDevice() {
+            showToast('กำลังจับคู่บลูทูธและทดสอบสัญญาณรับส่งกับนาฬิกา...', 'info');
+            setTimeout(() => {
+                showToast('เชื่อมต่อ Samsung Galaxy Watch 7 (WATCH-HS-007) สำเร็จ!', 'success');
+            }, 1500);
+        }
+
+        // TOAST NOTIFICATIONS UTILITY
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colorClass = type === 'success' ? 'border-emerald-500/20 bg-emerald-950/80 text-emerald-300' :
+                               (type === 'error' ? 'border-rose-500/20 bg-rose-950/80 text-rose-300 shadow-glow-rose' :
+                               'border-indigo-500/20 bg-slate-900/80 text-indigo-300');
+            
+            const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-triangle' : 'info');
+
+            toast.className = `glass-panel pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border text-xs font-semibold shadow-lg transition-all duration-300 transform translate-x-20 opacity-0 ${colorClass}`;
+            toast.innerHTML = `
+                <i data-lucide="${icon}" class="w-5 h-5 shrink-0"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-20', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-20', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // CONSOLE COLLAPSE TOGGLE
+        function toggleConsole() {
+            const body = document.getElementById('console-body');
+            const icon = document.querySelector('#console-toggle-btn i');
+            
+            if (isConsoleCollapsed) {
+                body.classList.remove('hidden');
+                icon.setAttribute('data-lucide', 'chevron-down');
+                isConsoleCollapsed = false;
+            } else {
+                body.classList.add('hidden');
+                icon.setAttribute('data-lucide', 'chevron-up');
+                isConsoleCollapsed = true;
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
