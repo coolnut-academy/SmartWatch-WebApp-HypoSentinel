@@ -379,11 +379,56 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-5 gap-6 items-center my-4">
+                                <!-- EMBEDDED PRESENTATION SCENARIO CONTROL CONSOLE -->
+                                <div id="presentation-console" class="mb-4 bg-slate-950/40 border border-white/5 rounded-2xl p-4 transition-all duration-300">
+                                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                                        <div class="flex flex-col text-left">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">SCENARIO SIMULATOR (ระบบจำลองสถานการณ์ทดสอบ)</h4>
+                                            </div>
+                                            <span class="text-[10px] sm:text-xs text-slate-500 font-medium ml-4 mt-0.5">Controlled prototype test states for presentation and validation planning</span>
+                                        </div>
+                                        <div>
+                                            <button onclick="toggleConsole()" class="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-slate-200" id="console-toggle-btn">
+                                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div id="console-body" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2.5">
+                                        <button onclick="loadScenario('normal')" data-scen-btn="normal" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-indigo-500 text-white border-indigo-500/30">
+                                            Normal Sleep
+                                        </button>
+                                        <button onclick="loadScenario('watch')" data-scen-btn="watch" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                                            Watch
+                                        </button>
+                                        <button onclick="loadScenario('warning')" data-scen-btn="warning" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                                            Warning
+                                        </button>
+                                        <button onclick="loadScenario('highRisk')" data-scen-btn="highRisk" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                                            High Risk
+                                        </button>
+                                        <button onclick="loadScenario('falseAlarm')" data-scen-btn="falseAlarm" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                                            Motion Noise
+                                        </button>
+                                        <button onclick="loadScenario('missingData')" data-scen-btn="missingData" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                                            Missing Data
+                                        </button>
+                                        <button onclick="loadScenario('disconnected')" data-scen-btn="disconnected" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                                            Disconnected
+                                        </button>
+                                        <button onclick="loadScenario('reconnected')" data-scen-btn="reconnected" class="py-2.5 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
+                                            Reconnected
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-5 gap-6 items-center my-6 lg:my-8">
                                     <!-- Big Gauge -->
                                     <div class="md:col-span-2 flex flex-col items-center justify-center relative">
                                         <!-- SVG circular gauge -->
-                                        <div class="relative w-36 h-36">
+                                        <div class="relative w-52 h-52">
                                             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                                                 <!-- BG ring -->
                                                 <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="none"/>
@@ -401,25 +446,25 @@
                                             </svg>
                                             <!-- Score text centered -->
                                             <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span class="text-3xl font-extrabold tracking-tight text-white font-mono" id="risk-score-text">0.67</span>
-                                                <span class="text-xs uppercase tracking-widest text-slate-400 font-bold">Risk Score</span>
+                                                <span class="text-5xl font-extrabold tracking-tight text-white font-mono" id="risk-score-text">0.67</span>
+                                                <span class="text-sm uppercase tracking-widest text-slate-400 font-bold mt-1">Risk Score</span>
                                             </div>
                                         </div>
-                                        <p class="text-xs text-slate-400 font-mono mt-2" id="risk-confidence-label">Confidence: Medium-High</p>
+                                        <p class="text-sm text-slate-400 font-mono mt-3" id="risk-confidence-label">Confidence: Medium-High</p>
                                     </div>
 
                                     <!-- Description and Verification action -->
-                                    <div class="md:col-span-3 space-y-4">
-                                        <div class="space-y-1">
-                                            <p class="text-sm text-indigo-200 font-medium">การประเมินแนวโน้มความเสี่ยง:</p>
-                                            <h4 class="text-xl font-extrabold text-orange-400" id="risk-trend-thai">แนวโน้มความเสี่ยงเพิ่มขึ้น</h4>
-                                            <p class="text-xs text-slate-300 leading-relaxed" id="risk-desc-long">
+                                    <div class="md:col-span-3 space-y-6">
+                                        <div class="space-y-2">
+                                            <p class="text-base text-indigo-200 font-medium">การประเมินแนวโน้มความเสี่ยง:</p>
+                                            <h4 class="text-3xl font-extrabold text-orange-400" id="risk-trend-thai">แนวโน้มความเสี่ยงเพิ่มขึ้น</h4>
+                                            <p class="text-sm md:text-base text-slate-300 leading-relaxed" id="risk-desc-long">
                                                 ระบบพบรูปแบบการเปลี่ยนแปลงของสัญญาณชีพร่วมกัน เช่น อัตราการเต้นหัวใจสูงกว่าค่าฐาน ความแปรปรวนของหัวใจลดลง และมีการเคลื่อนไหวน้อยในช่วงพัก จึงประเมินว่าแนวโน้มความเสี่ยงเพิ่มขึ้น และแนะนำให้ตรวจยืนยันด้วย CGM หรือเครื่องตรวจน้ำตาลมาตรฐาน
                                             </p>
                                         </div>
                                         <div class="pt-2">
-                                            <button onclick="openVerifyModal()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg shadow-orange-500/20 active:scale-98 transition-all">
-                                                <i data-lucide="check-square" class="w-4 h-4"></i>
+                                            <button onclick="openVerifyModal()" class="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg shadow-orange-500/20 active:scale-98 transition-all">
+                                                <i data-lucide="check-square" class="w-5 h-5"></i>
                                                 <span>ตรวจยืนยันด้วย CGM / Glucose Meter</span>
                                             </button>
                                         </div>
@@ -428,10 +473,10 @@
 
                                 <!-- Indicator ranges bar -->
                                 <div class="grid grid-cols-4 gap-2 text-center text-xs font-bold text-slate-400 pt-4 border-t border-white/5">
-                                    <div class="py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" id="range-normal">ปกติ (0.00-0.29)</div>
-                                    <div class="py-1 rounded bg-slate-900/40 border border-white/5" id="range-watch">เฝ้าระวัง (0.30-0.59)</div>
-                                    <div class="py-1 rounded bg-slate-900/40 border border-white/5" id="range-warning">เตือนภัย (0.60-0.79)</div>
-                                    <div class="py-1 rounded bg-slate-900/40 border border-white/5" id="range-high">เสี่ยงสูง (0.80-1.00)</div>
+                                    <div class="py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" id="range-normal">ปกติ (0.00-0.29)</div>
+                                    <div class="py-2.5 rounded-xl bg-slate-900/40 border border-white/5" id="range-watch">เฝ้าระวัง (0.30-0.59)</div>
+                                    <div class="py-2.5 rounded-xl bg-slate-900/40 border border-white/5" id="range-warning">เตือนภัย (0.60-0.79)</div>
+                                    <div class="py-2.5 rounded-xl bg-slate-900/40 border border-white/5" id="range-high">เสี่ยงสูง (0.80-1.00)</div>
                                 </div>
                             </div>
                         </div>
@@ -1179,50 +1224,7 @@
 
             </div>
 
-            <!-- FLOATING PRESENTATION SCENARIO CONTROL CONSOLE -->
-            <div id="presentation-console" class="fixed bottom-4 left-4 right-4 md:left-6 md:right-6 bg-slate-950/90 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-xl p-3 z-40 transition-all duration-300 transform translate-y-0">
-                <div class="flex items-center justify-between pb-2 border-b border-white/5">
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">SCENARIO SIMULATOR (ระบบจำลองสถานการณ์ทดสอบ)</h4>
-                        </div>
-                        <span class="text-xs text-slate-500 font-medium ml-4 leading-none mt-0.5">Controlled prototype test states for presentation and validation planning</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="toggleConsole()" class="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-slate-200 animate-pulse" id="console-toggle-btn">
-                            <i data-lucide="chevron-up" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                </div>
 
-                <div id="console-body" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-2.5 overflow-x-auto no-scrollbar hidden">
-                    <button onclick="loadScenario('normal')" data-scen-btn="normal" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-indigo-500 text-white border-indigo-500/30">
-                        Normal Sleep
-                    </button>
-                    <button onclick="loadScenario('watch')" data-scen-btn="watch" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
-                        Watch
-                    </button>
-                    <button onclick="loadScenario('warning')" data-scen-btn="warning" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
-                        Warning
-                    </button>
-                    <button onclick="loadScenario('highRisk')" data-scen-btn="highRisk" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
-                        High Risk
-                    </button>
-                    <button onclick="loadScenario('falseAlarm')" data-scen-btn="falseAlarm" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
-                        Motion Noise
-                    </button>
-                    <button onclick="loadScenario('missingData')" data-scen-btn="missingData" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
-                        Missing Data
-                    </button>
-                    <button onclick="loadScenario('disconnected')" data-scen-btn="disconnected" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
-                        Disconnected
-                    </button>
-                    <button onclick="loadScenario('reconnected')" data-scen-btn="reconnected" class="py-2 px-1 text-xs font-bold rounded-xl border transition-all text-center bg-slate-900 border-white/10 text-slate-300 hover:bg-white/5">
-                        Reconnected
-                    </button>
-                </div>
-            </div>
 
         </main>
     </div>
@@ -1329,7 +1331,7 @@
         let currentScenario = 'warning';
         let trendsChart = null;
         let miniTrendChart = null;
-        let isConsoleCollapsed = true;
+        let isConsoleCollapsed = false;
 
         // Scenarios Database
         const SCENARIOS = {
@@ -1768,31 +1770,31 @@
             circle.style.strokeDashoffset = offset;
 
             // Remove previous shadows/borders from range tags
-            document.getElementById('range-normal').className = "py-1 rounded bg-slate-900/40 border border-white/5";
-            document.getElementById('range-watch').className = "py-1 rounded bg-slate-900/40 border border-white/5";
-            document.getElementById('range-warning').className = "py-1 rounded bg-slate-900/40 border border-white/5";
-            document.getElementById('range-high').className = "py-1 rounded bg-slate-900/40 border border-white/5";
+            document.getElementById('range-normal').className = "py-2.5 rounded-xl bg-slate-900/40 border border-white/5 text-slate-400 font-semibold transition-all duration-300";
+            document.getElementById('range-watch').className = "py-2.5 rounded-xl bg-slate-900/40 border border-white/5 text-slate-400 font-semibold transition-all duration-300";
+            document.getElementById('range-warning').className = "py-2.5 rounded-xl bg-slate-900/40 border border-white/5 text-slate-400 font-semibold transition-all duration-300";
+            document.getElementById('range-high').className = "py-2.5 rounded-xl bg-slate-900/40 border border-white/5 text-slate-400 font-semibold transition-all duration-300";
 
             // Update badge color classes dynamically
             if (data.risk.color === 'emerald') {
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-glow-emerald";
-                document.getElementById('range-normal').className = "py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold";
-                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-emerald-400";
+                document.getElementById('range-normal').className = "py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold shadow-lg shadow-emerald-500/10 transition-all duration-300";
+                document.getElementById('risk-trend-thai').className = "text-3xl font-extrabold text-emerald-400";
                 document.getElementById('risk-trend-thai').innerText = "ระดับความเสี่ยงปกติ";
             } else if (data.risk.color === 'amber') {
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-glow-amber";
-                document.getElementById('range-watch').className = "py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold";
-                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-amber-400";
+                document.getElementById('range-watch').className = "py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold shadow-lg shadow-amber-500/10 transition-all duration-300";
+                document.getElementById('risk-trend-thai').className = "text-3xl font-extrabold text-amber-400";
                 document.getElementById('risk-trend-thai').innerText = "สัญญาณชีพเริ่มเบี่ยงเบน";
             } else if (data.risk.color === 'orange') {
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/30 shadow-glow-orange";
-                document.getElementById('range-warning').className = "py-1 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold";
-                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-orange-400";
+                document.getElementById('range-warning').className = "py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold shadow-lg shadow-orange-500/10 transition-all duration-300";
+                document.getElementById('risk-trend-thai').className = "text-3xl font-extrabold text-orange-400";
                 document.getElementById('risk-trend-thai').innerText = "แนวโน้มความเสี่ยงเพิ่มขึ้น";
             } else {
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-glow-rose animate-pulse";
-                document.getElementById('range-high').className = "py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold";
-                document.getElementById('risk-trend-thai').className = "text-xl font-extrabold text-rose-500 animate-pulse";
+                document.getElementById('range-high').className = "py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold shadow-lg shadow-rose-500/10 transition-all duration-300";
+                document.getElementById('risk-trend-thai').className = "text-3xl font-extrabold text-rose-500 animate-pulse";
                 document.getElementById('risk-trend-thai').innerText = "ความเสี่ยงภาวะน้ำตาลต่ำระดับสูง";
             }
 
