@@ -136,9 +136,7 @@
         <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-slate-950/80 border-r border-white/5 backdrop-blur-2xl transition-all duration-300 relative">
             <!-- Brand Logotype -->
             <div class="flex items-center gap-3 px-6 py-5 border-b border-white/5 bg-slate-950/40">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <i data-lucide="shield-alert" class="w-5 h-5 text-white animate-pulse"></i>
-                </div>
+                <img src="LogoHypoSentinel.png" alt="HypoSentinel Logo" class="w-8 h-8 rounded-lg object-contain shadow-lg shadow-indigo-500/30">
                 <div>
                     <h1 class="text-md font-bold tracking-wider bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">HypoSentinel</h1>
                     <p class="text-xs text-cyan-400 font-bold uppercase tracking-widest leading-none">Early Warning Sys</p>
@@ -289,23 +287,8 @@
                                         <!-- Signal waves indicator -->
                                         <div class="absolute w-28 h-28 rounded-full bg-indigo-500/5 animate-radar" id="watch-radar"></div>
                                         
-                                        <!-- SVG Smartwatch -->
-                                        <svg class="w-24 h-24 drop-shadow-2xl" viewBox="0 0 100 100" id="svg-smartwatch">
-                                            <!-- Strap -->
-                                            <path d="M 38 12 L 62 12 L 58 26 L 42 26 Z" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-                                            <path d="M 38 88 L 62 88 L 58 74 L 42 74 Z" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-                                            <!-- Case -->
-                                            <circle cx="50" cy="50" r="28" fill="#0f172a" stroke="#475569" stroke-width="3"/>
-                                            <circle cx="50" cy="50" r="25" fill="#020617" id="watch-screen"/>
-                                            <!-- Dynamic sensor display -->
-                                            <circle cx="50" cy="50" r="20" fill="none" stroke="rgba(99, 102, 241, 0.2)" stroke-width="1" id="watch-screen-ring"/>
-                                            
-                                            <!-- Heart rate line graph drawn inside watch face -->
-                                            <path d="M 35 50 Q 40 50 43 45 T 46 55 T 49 35 T 52 65 T 55 48 T 58 50 T 65 50" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" id="watch-pulse-line" class="animate-pulse"/>
-                                            
-                                            <!-- Small dynamic icons inside watch -->
-                                            <circle cx="50" cy="35" r="2" fill="#10b981" id="watch-status-dot"/>
-                                        </svg>
+                                        <!-- Smartwatch Image Graphic -->
+                                        <img id="watch-display-img" src="WatchConnected.png" alt="Smartwatch Status" class="w-28 h-28 object-contain drop-shadow-2xl z-10 transition-all duration-300">
                                     </div>
                                 </div>
 
@@ -1248,9 +1231,15 @@
     <div id="mobile-menu" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300 opacity-0 pointer-events-none">
         <div class="w-64 h-full bg-slate-950 border-r border-white/5 p-6 flex flex-col justify-between transition-transform duration-300 -translate-x-full" id="mobile-menu-panel">
             <div class="space-y-6">
-                <!-- Close Button -->
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-bold text-indigo-400">เมนูการใช้งาน</span>
+                <!-- Close Button & Brand Logo -->
+                <div class="flex items-center justify-between border-b border-white/5 pb-4">
+                    <div class="flex items-center gap-2">
+                        <img src="LogoHypoSentinel.png" alt="HypoSentinel Logo" class="w-7 h-7 rounded-lg object-contain shadow-md shadow-indigo-500/20">
+                        <div>
+                            <h1 class="text-sm font-bold tracking-wider text-white">HypoSentinel</h1>
+                            <p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest leading-none">Early Warning Sys</p>
+                        </div>
+                    </div>
                     <button onclick="toggleMobileMenu()" class="p-1 rounded bg-white/5 text-slate-400 hover:text-slate-200">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
@@ -1720,7 +1709,8 @@
             document.getElementById('overview-signal-stream').innerText = data.device.connectionStatus === 'synced' ? "Active Stream" : "Inactive";
             document.getElementById('overview-process-window').innerText = data.device.connectionStatus === 'synced' ? "5–15 min" : "N/A";
             
-            // Adjust Watch SVG colors & display
+            // Adjust Watch display (Image or SVG)
+            const watchDisplayImg = document.getElementById('watch-display-img');
             const watchScreen = document.getElementById('watch-screen');
             const watchScreenRing = document.getElementById('watch-screen-ring');
             const watchPulseLine = document.getElementById('watch-pulse-line');
@@ -1728,19 +1718,39 @@
             const watchRadar = document.getElementById('watch-radar');
 
             if (data.device.connectionStatus === 'disconnected') {
-                watchScreen.setAttribute('fill', '#1e293b');
-                watchScreenRing.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-                watchPulseLine.setAttribute('stroke', '#64748b');
-                watchPulseLine.classList.remove('animate-pulse');
-                watchStatusDot.setAttribute('fill', '#ef4444');
-                watchRadar.style.display = 'none';
+                if (watchDisplayImg) {
+                    watchDisplayImg.src = 'WatchDisconnected.png';
+                    watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.2)] z-10 transition-all duration-300";
+                }
+                if (watchScreen) watchScreen.setAttribute('fill', '#1e293b');
+                if (watchScreenRing) watchScreenRing.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+                if (watchPulseLine) {
+                    watchPulseLine.setAttribute('stroke', '#64748b');
+                    watchPulseLine.classList.remove('animate-pulse');
+                }
+                if (watchStatusDot) watchStatusDot.setAttribute('fill', '#ef4444');
+                if (watchRadar) watchRadar.style.display = 'none';
             } else {
-                watchScreen.setAttribute('fill', '#020617');
-                watchScreenRing.setAttribute('stroke', data.risk.color === 'red' ? 'rgba(244,63,94,0.3)' : 'rgba(99,102,241,0.2)');
-                watchPulseLine.setAttribute('stroke', data.risk.color === 'red' ? '#f43f5e' : (data.risk.color === 'orange' ? '#f97316' : '#22d3ee'));
-                watchPulseLine.classList.add('animate-pulse');
-                watchStatusDot.setAttribute('fill', '#10b981');
-                watchRadar.style.display = 'block';
+                if (watchDisplayImg) {
+                    watchDisplayImg.src = 'WatchConnected.png';
+                    if (data.risk.color === 'red') {
+                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.5)] z-10 transition-all duration-300 animate-pulse";
+                    } else if (data.risk.color === 'orange') {
+                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(249,115,22,0.4)] z-10 transition-all duration-300";
+                    } else if (data.risk.color === 'amber') {
+                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)] z-10 transition-all duration-300";
+                    } else {
+                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] z-10 transition-all duration-300";
+                    }
+                }
+                if (watchScreen) watchScreen.setAttribute('fill', '#020617');
+                if (watchScreenRing) watchScreenRing.setAttribute('stroke', data.risk.color === 'red' ? 'rgba(244,63,94,0.3)' : 'rgba(99,102,241,0.2)');
+                if (watchPulseLine) {
+                    watchPulseLine.setAttribute('stroke', data.risk.color === 'red' ? '#f43f5e' : (data.risk.color === 'orange' ? '#f97316' : '#22d3ee'));
+                    watchPulseLine.classList.add('animate-pulse');
+                }
+                if (watchStatusDot) watchStatusDot.setAttribute('fill', '#10b981');
+                if (watchRadar) watchRadar.style.display = 'block';
             }
 
             // 3. Risk Card Updates
