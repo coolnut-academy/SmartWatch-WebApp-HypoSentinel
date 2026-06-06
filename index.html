@@ -283,12 +283,12 @@
                                     </div>
 
                                     <!-- Dynamic animated watch graphic -->
-                                    <div class="flex justify-center items-center my-6 relative">
+                                    <div class="flex justify-center items-center my-6 relative h-64">
                                         <!-- Signal waves indicator -->
-                                        <div class="absolute w-28 h-28 rounded-full bg-indigo-500/5 animate-radar" id="watch-radar"></div>
+                                        <div class="absolute w-60 h-60 rounded-full bg-indigo-500/5 animate-radar" id="watch-radar"></div>
                                         
                                         <!-- Smartwatch Image Graphic -->
-                                        <img id="watch-display-img" src="WatchConnected.png" alt="Smartwatch Status" class="w-28 h-28 object-contain drop-shadow-2xl z-10 transition-all duration-300">
+                                        <img id="watch-display-img" src="WatchConnected.png" alt="Smartwatch Status" class="w-56 h-56 object-contain drop-shadow-2xl z-10 transition-all duration-300">
                                     </div>
                                 </div>
 
@@ -1720,7 +1720,7 @@
             if (data.device.connectionStatus === 'disconnected') {
                 if (watchDisplayImg) {
                     watchDisplayImg.src = 'WatchDisconnected.png';
-                    watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.2)] z-10 transition-all duration-300";
+                    watchDisplayImg.className = "w-56 h-56 object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.2)] z-10 transition-all duration-300";
                 }
                 if (watchScreen) watchScreen.setAttribute('fill', '#1e293b');
                 if (watchScreenRing) watchScreenRing.setAttribute('stroke', 'rgba(255,255,255,0.05)');
@@ -1734,13 +1734,13 @@
                 if (watchDisplayImg) {
                     watchDisplayImg.src = 'WatchConnected.png';
                     if (data.risk.color === 'red') {
-                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.5)] z-10 transition-all duration-300 animate-pulse";
+                        watchDisplayImg.className = "w-56 h-56 object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.5)] z-10 transition-all duration-300 animate-pulse";
                     } else if (data.risk.color === 'orange') {
-                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(249,115,22,0.4)] z-10 transition-all duration-300";
+                        watchDisplayImg.className = "w-56 h-56 object-contain drop-shadow-[0_0_15px_rgba(249,115,22,0.4)] z-10 transition-all duration-300";
                     } else if (data.risk.color === 'amber') {
-                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)] z-10 transition-all duration-300";
+                        watchDisplayImg.className = "w-56 h-56 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)] z-10 transition-all duration-300";
                     } else {
-                        watchDisplayImg.className = "w-28 h-28 object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] z-10 transition-all duration-300";
+                        watchDisplayImg.className = "w-56 h-56 object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] z-10 transition-all duration-300";
                     }
                 }
                 if (watchScreen) watchScreen.setAttribute('fill', '#020617');
